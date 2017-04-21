@@ -72,6 +72,7 @@ public class Test extends ApplicationAdapter {
         assetManager.load("arial.tnf", BitmapFont.class);
 
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("fonts/arial.ttf"));
+
         FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
         parameter.size = 200;
         font12 = generator.generateFont(parameter); // font size 12 pixels
@@ -137,7 +138,7 @@ public class Test extends ApplicationAdapter {
         Gdx.gl30.glEnable(GL30.GL_DEPTH_TEST);
         spriteBatch.begin();
        // assetManager.get("size10.ttf");
-        font12.draw(spriteBatch,"LLLLLLLLLL",100,500);
+        font12.draw(spriteBatch,"Test",100,500);
         spriteBatch.end();
     }
 
