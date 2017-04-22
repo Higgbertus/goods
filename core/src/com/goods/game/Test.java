@@ -8,7 +8,6 @@ import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL30;
 import com.badlogic.gdx.graphics.Mesh;
-import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.VertexAttributes;
@@ -22,22 +21,17 @@ import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
-import com.badlogic.gdx.graphics.g3d.RenderableProvider;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.g3d.utils.MeshBuilder;
-import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Matrix4;
-import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.List;
-import com.badlogic.gdx.utils.Pools;
 import com.goods.game.Terrain.Terrain;
 import com.goods.game.Terrain.TerrainBuilder;
 import com.goods.game.Terrain.TerrainWithObjects;
+
 
 import java.util.ArrayList;
 
@@ -59,24 +53,14 @@ public class Test extends ApplicationAdapter {
     BitmapFont font1, font2, font3;
 
     TerrainWithObjects terrainWithObjects;
-    private Model tableTopModel;
-
+    private Model leuchtturm;
+    public boolean loading;
     @Override
     public void create () {
         spriteBatch = new SpriteBatch();
         assetManager = new AssetManager();
-        FileHandleResolver resolver = new InternalFileHandleResolver();
-        assetManager.setLoader(FreeTypeFontGenerator.class, new FreeTypeFontGeneratorLoader(resolver));
-        assetManager.setLoader(BitmapFont.class, ".ttf", new FreetypeFontLoader(resolver));
+       // assetManager.load("models/Leuchtturm.g3db",Model.class);
 
-        FreetypeFontLoader.FreeTypeFontLoaderParameter size1Params = new FreetypeFontLoader.FreeTypeFontLoaderParameter();
-        size1Params.fontFileName = "arial.ttf";
-        size1Params.fontParameters.size = 20;
-
-        assetManager.load("size10.ttf", BitmapFont.class, size1Params);
-
-        // we also load a "normal" font generated via Hiero
-        assetManager.load("models/Leuchtturm.g3db",Model.class);
         FreeTypeFontGenerator generator2 = new FreeTypeFontGenerator(Gdx.files.internal("fonts/BRLNSR.ttf"));
         FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
         parameter.size = 25;
@@ -121,20 +105,28 @@ public class Test extends ApplicationAdapter {
         terrainSmall = terrainBuilder.createTerrain("Small", 10, 10, 10, false, material, texture);
         terrainWithObjects = new TerrainWithObjects(terrainBig);
         ModelBuilder modelBuilder = new ModelBuilder();
-        model = modelBuilder.createBox(5f, 5f, 5f,
-                new Material(ColorAttribute.createDiffuse(Color.GREEN)),
-                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
+        model = modelBuilder.createBox(5f, 5f, 5f, new Material(ColorAttribute.createDiffuse(Color.GREEN)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
+
         instances.add(new ModelInstance(model));
         instance = new ModelInstance(model);
 
         //textTransformation.idt().scl(0.2f).rotate(0, 0, 1, 45).translate(-50, 2, 25f);
-
+        assetManager.load("models/wuerfel.g3db",Model.class);
+        loading = true;
     }
 
     Matrix4 textTransformation = new Matrix4();
+    private void doneLoading() {
+        Model ship = assetManager.get("models/wuerfel.g3db", Model.class);
+        ModelInstance shipInstance = new ModelInstance(ship);
+        instance = shipInstance;
+        loading = false;
+    }
 
     @Override
     public void render () {
+            if (loading && assetManager.update())
+                doneLoading();
         createDebugText();
         camController.update();
 
@@ -175,6 +167,6 @@ public class Test extends ApplicationAdapter {
         model.dispose();
         spriteBatch.dispose();
         assetManager.dispose();
-        terrainWithObjects.dispose();
+//        terrainWithObjects.dispose();
     }
 }
