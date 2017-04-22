@@ -3,6 +3,8 @@ package com.goods.game;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.assets.loaders.FileHandleResolver;
+import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL30;
 import com.badlogic.gdx.graphics.Mesh;
@@ -12,6 +14,8 @@ import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGeneratorLoader;
+import com.badlogic.gdx.graphics.g2d.freetype.FreetypeFontLoader;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
@@ -19,6 +23,7 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
+import com.badlogic.gdx.graphics.g3d.environment.BaseLight;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.g3d.utils.MeshBuilder;
@@ -32,7 +37,8 @@ import com.goods.game.Terrain.TerrainWithObjects;
 import java.util.ArrayList;
 
 public class Test extends ApplicationAdapter {
-    public Environment lights;
+    public Environment environment;
+    public DirectionalLight light;
     public PerspectiveCamera perCam;
     public ModelBatch modelBatch;
     public Model model;
@@ -49,6 +55,7 @@ public class Test extends ApplicationAdapter {
     BitmapFont font;
     Texture texture;
     TerrainWithObjects terrainWithObjects;
+
     public boolean loading;
     @Override
     public void create () {
@@ -68,11 +75,11 @@ public class Test extends ApplicationAdapter {
 
         instances = new ArrayList<ModelInstance>();
         instances2 = new ArrayList<ModelInstance>();
-        lights = new Environment();
-        // set ambient light ?? stärke vom licht?
-        lights.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1f));
-        // erste wert ist die farbe??? , 2 wert die richtung
-        lights.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, 0f, 0f, -5f));
+
+        // Lichteinstellungen
+        environment = new Environment();
+        environment.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1f));
+        environment.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.8f, -0.2f));
 
         modelBatch = new ModelBatch();
 
@@ -101,6 +108,7 @@ public class Test extends ApplicationAdapter {
         terrainWithObjects = new TerrainWithObjects(terrainBig);
         ModelBuilder modelBuilder = new ModelBuilder();
         model = modelBuilder.createBox(5f, 5f, 5f, new Material(ColorAttribute.createDiffuse(Color.GREEN)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
+
         instances.add(new ModelInstance(model));
         instance = new ModelInstance(model);
 
@@ -129,12 +137,11 @@ public class Test extends ApplicationAdapter {
         Gdx.gl30.glClear(GL30.GL_COLOR_BUFFER_BIT|GL30.GL_DEPTH_BUFFER_BIT);
 
         modelBatch.begin(perCam);
-        texture.bind();
         modelBatch.render(terrainBig);
         modelBatch.end();
 
         modelBatch.begin(perCam);
-        modelBatch.render(instance, lights);
+        modelBatch.render(instance, environment);
         modelBatch.end();
 
 
