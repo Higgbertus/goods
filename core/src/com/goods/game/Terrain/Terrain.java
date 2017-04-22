@@ -95,7 +95,8 @@ public class Terrain extends Renderable{
         meshPart.mesh = mesh;
         meshPart.offset = 0;
         meshPart.size = mesh.getNumIndices();
-        meshPart.primitiveType = Gdx.gl30.GL_LINES;
+       // meshPart.primitiveType = Gdx.gl30.GL_LINES;
+        meshPart.primitiveType = Gdx.gl30.GL_TRIANGLES;
         meshPart.update();
     }
 

@@ -103,7 +103,7 @@ public class Test extends ApplicationAdapter {
         texture = new Texture("badlogic.jpg");
         material = new Material(TextureAttribute.createDiffuse(texture));
         terrainBuilder = new TerrainBuilder();
-        terrainBig = terrainBuilder.createTerrain("Big", 1000, 1000, 100, true, material, environment);
+        terrainBig = terrainBuilder.createTerrain("Big", 400, 400, 100, true, material, environment);
         terrainSmall = terrainBuilder.createTerrain("Small", 10, 10, 10, false, material, environment);
         terrainWithObjects = new TerrainWithObjects(terrainBig);
         ModelBuilder modelBuilder = new ModelBuilder();
