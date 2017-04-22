@@ -3,8 +3,6 @@ package com.goods.game;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
-import com.badlogic.gdx.assets.loaders.FileHandleResolver;
-import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL30;
 import com.badlogic.gdx.graphics.Mesh;
@@ -14,8 +12,6 @@ import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
-import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGeneratorLoader;
-import com.badlogic.gdx.graphics.g2d.freetype.FreetypeFontLoader;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
@@ -50,10 +46,9 @@ public class Test extends ApplicationAdapter {
     Terrain terrainBig, terrainSmall;
     AssetManager assetManager;
    SpriteBatch spriteBatch;
-    BitmapFont font1, font2, font3;
-
+    BitmapFont font;
+    Texture texture;
     TerrainWithObjects terrainWithObjects;
-    private Model leuchtturm;
     public boolean loading;
     @Override
     public void create () {
@@ -66,7 +61,7 @@ public class Test extends ApplicationAdapter {
         parameter.size = 25;
         parameter.color = Color.RED;
 
-        font3 = generator2.generateFont(parameter); // font size 12 pixels
+        font = generator2.generateFont(parameter); // font size 12 pixels
         generator2.dispose(); // don't forget to dispose to avoid memory leaks!
 
 
@@ -85,12 +80,12 @@ public class Test extends ApplicationAdapter {
         perCam = new PerspectiveCamera(67, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         // Position rechtsX  hochY  zurückZ
         // Da aber nicht die kamera sonder alles was gerendet wird verschoben wird bedeuten 0,0,10 das alles plus 10 verschpben wird kamera bleibt 0,0,0 ?
-        perCam.position.set(0f, 0f, 10f);
+        perCam.position.set(0f, 0f, 300f);
         // 0,0,0 also mitte vom koordinatensys
         perCam.lookAt(0,0,0);
         // ???
         perCam.near = 1f;
-        perCam.far = 300f;
+        perCam.far = 1000f;
         // update camera => camera einstellungen übernehmen
 
         perCam.update();
@@ -98,15 +93,14 @@ public class Test extends ApplicationAdapter {
         camController = new CameraInputController(perCam);
         Gdx.input.setInputProcessor(camController);
 
-        Texture texture = new Texture("badlogic.jpg");
+        texture = new Texture("badlogic.jpg");
         material = new Material(TextureAttribute.createDiffuse(texture));
         terrainBuilder = new TerrainBuilder();
-        terrainBig = terrainBuilder.createTerrain("Big", 100, 100, 100, false, material, texture);
-        terrainSmall = terrainBuilder.createTerrain("Small", 10, 10, 10, false, material, texture);
+        terrainBig = terrainBuilder.createTerrain("Big", 1000, 1000, 100, true, material,lights);
+        terrainSmall = terrainBuilder.createTerrain("Small", 10, 10, 10, false, material, lights);
         terrainWithObjects = new TerrainWithObjects(terrainBig);
         ModelBuilder modelBuilder = new ModelBuilder();
         model = modelBuilder.createBox(5f, 5f, 5f, new Material(ColorAttribute.createDiffuse(Color.GREEN)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-
         instances.add(new ModelInstance(model));
         instance = new ModelInstance(model);
 
@@ -135,11 +129,12 @@ public class Test extends ApplicationAdapter {
         Gdx.gl30.glClear(GL30.GL_COLOR_BUFFER_BIT|GL30.GL_DEPTH_BUFFER_BIT);
 
         modelBatch.begin(perCam);
+        texture.bind();
         modelBatch.render(terrainBig);
         modelBatch.end();
 
         modelBatch.begin(perCam);
-        modelBatch.render(instance);
+        modelBatch.render(instance, lights);
         modelBatch.end();
 
 
@@ -147,7 +142,7 @@ public class Test extends ApplicationAdapter {
         //spriteBatch.setProjectionMatrix(perCam.combined.mul(textTransformation));
         spriteBatch.begin();
        // assetManager.get("size10.ttf");
-        font3.draw(spriteBatch,sb.toString(),10,Gdx.graphics.getHeight()-10);
+        font.draw(spriteBatch,sb.toString(),10,Gdx.graphics.getHeight()-10);
         spriteBatch.end();
     }
 

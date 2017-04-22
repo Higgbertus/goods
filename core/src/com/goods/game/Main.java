@@ -36,8 +36,10 @@ public class Main extends ApplicationAdapter {
     public ModelInstance instance, instanceArea;
     public ArrayList<ModelInstance> instances,instances2;
     public CameraInputController camController;
-	
-	@Override
+    private Texture texture;
+    private Material material;
+
+    @Override
 	public void create () {
         instances = new ArrayList<ModelInstance>();
         instances2 = new ArrayList<ModelInstance>();
@@ -141,8 +143,9 @@ public class Main extends ApplicationAdapter {
         instances.add(new ModelInstance(model, new Matrix4().trn(5f, 0f, 5f), "cylinder", true));
 */
 
-
-        model = makeTerrain(new Material(ColorAttribute.createDiffuse(Color.GREEN)),5,4,1f);
+        texture = new Texture("badlogic.jpg");
+        material = new Material(TextureAttribute.createDiffuse(texture));
+        model = makeTerrain(material,5,4,1f);
         instance = new ModelInstance(model);
 
 	}
@@ -164,7 +167,7 @@ public class Main extends ApplicationAdapter {
 
                 MeshPartBuilder.VertexInfo info = Pools.obtain(MeshPartBuilder.VertexInfo.class);
                 info.setPos(x, 0f, y);
-                //info.setUV(0f, 0f); ???
+                info.setUV(0f, 0f);
                 meshPart.vertex(info);
                 Pools.free(info);
 

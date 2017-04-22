@@ -15,7 +15,7 @@ public class DesktopLauncher {
 		config.useGL30 = true;
 		config.width = 1600;
 		config.height = 1200;
-		//new LwjglApplication(new Main(), config);
+		// new LwjglApplication(new Main(), config);
         //new LwjglApplication(new MeshExample(), config);
         new LwjglApplication(new Test(), config);
 	}

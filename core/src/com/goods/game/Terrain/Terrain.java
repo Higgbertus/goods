@@ -1,11 +1,14 @@
 package com.goods.game.Terrain;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.graphics.g3d.RenderableProvider;
+import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.model.MeshPart;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.utils.Array;
@@ -19,18 +22,20 @@ import com.badlogic.gdx.utils.Pool;
 public class Terrain extends Renderable{
     private int width, heigth;
     private boolean withHeights = false;
-    private Material material;
+    //private Material material;
     private Texture texture;
     private String name;
+
     public final Matrix4 transform = new Matrix4();
     private float[] vertices;
     private float[] indices;
 
-    public Terrain(String Name,int width, int height, Material material) {
+    public Terrain(String Name, int width, int height, Material material, Environment environment) {
         this.name = name;
         this.width = width;
         this.heigth = height;
-        this.material = material;
+        this.material = new Material(ColorAttribute.createDiffuse(Color.GREEN));
+        this.environment = environment;
     }
 
     public boolean isWithHeights() {
