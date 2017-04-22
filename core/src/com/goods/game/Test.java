@@ -23,6 +23,7 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
+import com.badlogic.gdx.graphics.g3d.environment.BaseLight;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.g3d.utils.MeshBuilder;
@@ -36,7 +37,8 @@ import com.goods.game.Terrain.TerrainWithObjects;
 import java.util.ArrayList;
 
 public class Test extends ApplicationAdapter {
-    public Environment lights;
+    public Environment environment;
+    public DirectionalLight light;
     public PerspectiveCamera perCam;
     public ModelBatch modelBatch;
     public Model model;
@@ -53,7 +55,7 @@ public class Test extends ApplicationAdapter {
     BitmapFont font1, font2, font3;
 
     TerrainWithObjects terrainWithObjects;
-    private Model leuchtturm;
+
     public boolean loading;
     @Override
     public void create () {
@@ -73,11 +75,11 @@ public class Test extends ApplicationAdapter {
 
         instances = new ArrayList<ModelInstance>();
         instances2 = new ArrayList<ModelInstance>();
-        lights = new Environment();
-        // set ambient light ?? stärke vom licht?
-        lights.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1f));
-        // erste wert ist die farbe??? , 2 wert die richtung
-        lights.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, 0f, 0f, -5f));
+
+        // Lichteinstellungen
+        environment = new Environment();
+        environment.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1f));
+        environment.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.8f, -0.2f));
 
         modelBatch = new ModelBatch();
 
@@ -139,7 +141,7 @@ public class Test extends ApplicationAdapter {
         modelBatch.end();
 
         modelBatch.begin(perCam);
-        modelBatch.render(instance);
+        modelBatch.render(instance, environment);
         modelBatch.end();
 
 
