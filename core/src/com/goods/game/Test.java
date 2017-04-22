@@ -22,6 +22,7 @@ import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.graphics.g3d.RenderableProvider;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
@@ -36,6 +37,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.List;
 import com.badlogic.gdx.utils.Pools;
 import com.goods.game.Terrain.Terrain;
 import com.goods.game.Terrain.TerrainBuilder;
+import com.goods.game.Terrain.TerrainWithObjects;
 
 import java.util.ArrayList;
 
@@ -54,7 +56,11 @@ public class Test extends ApplicationAdapter {
     Terrain terrainBig, terrainSmall;
     AssetManager assetManager;
    SpriteBatch spriteBatch;
-    BitmapFont font12;
+    BitmapFont font1, font2, font3;
+
+    TerrainWithObjects terrainWithObjects;
+    private Model tableTopModel;
+
     @Override
     public void create () {
         spriteBatch = new SpriteBatch();
@@ -65,20 +71,19 @@ public class Test extends ApplicationAdapter {
 
         FreetypeFontLoader.FreeTypeFontLoaderParameter size1Params = new FreetypeFontLoader.FreeTypeFontLoaderParameter();
         size1Params.fontFileName = "arial.ttf";
-        size1Params.fontParameters.size = 10;
+        size1Params.fontParameters.size = 20;
+
         assetManager.load("size10.ttf", BitmapFont.class, size1Params);
 
         // we also load a "normal" font generated via Hiero
-        assetManager.load("arial.tnf", BitmapFont.class);
-
-        FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("fonts/arial.ttf"));
-
+        assetManager.load("models/Leuchtturm.g3db",Model.class);
+        FreeTypeFontGenerator generator2 = new FreeTypeFontGenerator(Gdx.files.internal("fonts/BRLNSR.ttf"));
         FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
-        parameter.size = 200;
-        font12 = generator.generateFont(parameter); // font size 12 pixels
-        generator.dispose(); // don't forget to dispose to avoid memory leaks!
+        parameter.size = 25;
+        parameter.color = Color.RED;
 
-
+        font3 = generator2.generateFont(parameter); // font size 12 pixels
+        generator2.dispose(); // don't forget to dispose to avoid memory leaks!
 
 
 
@@ -114,17 +119,23 @@ public class Test extends ApplicationAdapter {
         terrainBuilder = new TerrainBuilder();
         terrainBig = terrainBuilder.createTerrain("Big", 100, 100, 100, false, material, texture);
         terrainSmall = terrainBuilder.createTerrain("Small", 10, 10, 10, false, material, texture);
-
+        terrainWithObjects = new TerrainWithObjects(terrainBig);
         ModelBuilder modelBuilder = new ModelBuilder();
         model = modelBuilder.createBox(5f, 5f, 5f,
                 new Material(ColorAttribute.createDiffuse(Color.GREEN)),
                 VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
+        instances.add(new ModelInstance(model));
         instance = new ModelInstance(model);
+
+        //textTransformation.idt().scl(0.2f).rotate(0, 0, 1, 45).translate(-50, 2, 25f);
+
     }
+
+    Matrix4 textTransformation = new Matrix4();
 
     @Override
     public void render () {
-
+        createDebugText();
         camController.update();
 
         Gdx.gl30.glClearColor(0,0,0,1);
@@ -133,13 +144,28 @@ public class Test extends ApplicationAdapter {
 
         modelBatch.begin(perCam);
         modelBatch.render(terrainBig);
-        // modelBatch.render(instance);
         modelBatch.end();
+
+        modelBatch.begin(perCam);
+        modelBatch.render(instance);
+        modelBatch.end();
+
+
         Gdx.gl30.glEnable(GL30.GL_DEPTH_TEST);
+        //spriteBatch.setProjectionMatrix(perCam.combined.mul(textTransformation));
         spriteBatch.begin();
        // assetManager.get("size10.ttf");
-        font12.draw(spriteBatch,"Test",100,500);
+        font3.draw(spriteBatch,sb.toString(),10,Gdx.graphics.getHeight()-10);
         spriteBatch.end();
+    }
+
+    StringBuilder sb = new StringBuilder();
+    private void createDebugText(){
+        sb.delete(0, sb.length());
+        sb.append("Debug:");
+        sb.append("\nCam Dir:"  + perCam.direction.toString());
+        sb.append("\nCam Pos:"  + perCam.position.toString());
+        sb.append("\nCam Pos:"  + perCam.combined.toString());
     }
 
     @Override
@@ -149,5 +175,6 @@ public class Test extends ApplicationAdapter {
         model.dispose();
         spriteBatch.dispose();
         assetManager.dispose();
+        terrainWithObjects.dispose();
     }
 }
