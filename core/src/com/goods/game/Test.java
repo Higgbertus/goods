@@ -27,8 +27,11 @@ import com.badlogic.gdx.graphics.g3d.environment.BaseLight;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.g3d.utils.MeshBuilder;
+import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.utils.Pools;
 import com.goods.game.Terrain.Terrain;
 import com.goods.game.Terrain.TerrainBuilder;
 import com.goods.game.Terrain.TerrainWithObjects;
@@ -41,7 +44,7 @@ public class Test extends ApplicationAdapter {
     public DirectionalLight light;
     public PerspectiveCamera perCam;
     public ModelBatch modelBatch;
-    public Model model;
+    public Model model, map;
     public Mesh mesh;
     public ModelInstance instance, instanceArea;
     public ArrayList<ModelInstance> instances,instances2;
@@ -78,6 +81,7 @@ public class Test extends ApplicationAdapter {
 
         // Lichteinstellungen
         environment = new Environment();
+
         environment.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1f));
         environment.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.8f, -0.2f));
 
@@ -104,14 +108,15 @@ public class Test extends ApplicationAdapter {
         material = new Material(TextureAttribute.createDiffuse(texture));
         terrainBuilder = new TerrainBuilder();
         terrainBig = terrainBuilder.createTerrain("Big", 400, 400, 100, true, material, environment);
-        terrainSmall = terrainBuilder.createTerrain("Small", 10, 10, 10, false, material, environment);
-        terrainWithObjects = new TerrainWithObjects(terrainBig);
+        //terrainSmall = terrainBuilder.createTerrain("Small", 10, 10, 10, false, material, environment);
+        //terrainWithObjects = new TerrainWithObjects(terrainBig);
         ModelBuilder modelBuilder = new ModelBuilder();
         model = modelBuilder.createBox(5f, 5f, 5f, new Material(ColorAttribute.createDiffuse(Color.GREEN)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
 
         instances.add(new ModelInstance(model));
         instance = new ModelInstance(model);
-
+        map = createMesh(400,400,100,false,new Material(ColorAttribute.createDiffuse(Color.RED)));
+        instanceArea = new ModelInstance(map);
         //textTransformation.idt().scl(0.2f).rotate(0, 0, 1, 45).translate(-50, 2, 25f);
         assetManager.load("models/leaftree_1.g3db",Model.class);
         loading = true;
@@ -124,6 +129,74 @@ public class Test extends ApplicationAdapter {
         instance = shipInstance;
         loading = false;
     }
+
+
+
+
+
+
+
+
+
+
+
+
+    private Model createMesh(int width, int height, int numberOfChunks, boolean withHeight, Material material) {
+        int offset = 0;
+        float width_half = width / 2;
+        float height_half = height / 2;
+        int gridX = numberOfChunks;
+        int gridY = numberOfChunks;
+        int gridX1 = gridX + 1;
+        int gridY1 = gridY + 1;
+
+        float segment_width = width / gridX;
+        float segment_height = height / gridY;
+
+        float[] vertices = new float[gridX1 * gridY1 * 3];
+        short[] indices = new short[gridX * gridY * 6];
+
+        ModelBuilder builder = new ModelBuilder();
+        builder.begin();
+        MeshPartBuilder meshPart = builder.part("top", Gdx.gl30.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal, material);
+
+
+        for (int iy = 0; iy < gridY1; iy++) {
+            float y = iy * segment_height - height_half;
+            for (int ix = 0; ix < gridX1; ix++) {
+                float x = ix * segment_width - width_half;
+
+                vertices[offset] = x;
+                vertices[offset + 1] = -y;
+                vertices[offset + 2] = 0;
+                offset += 3;
+
+                MeshPartBuilder.VertexInfo info = Pools.obtain(MeshPartBuilder.VertexInfo.class);
+                //info.setCol(MathUtils.random(),MathUtils.random(),MathUtils.random(),0);
+               // info.setCol(Color.YELLOW);
+                info.setPos(x,-y,0);
+                info.setNor(0,0,1);
+               // info.setUV(null);
+                meshPart.vertex(info);
+                Pools.free(info);
+
+                short a = (short) (ix + gridX1 * iy);
+                short b = (short) (ix + gridX1 * (iy + 1));
+                short c = (short) ((ix + 1) + gridX1 * (iy + 1));
+                short d = (short) ((ix + 1) + gridX1 * iy);
+
+                meshPart.index(a,b,d,b,c,d);
+               // meshPart.index(a,d,c,b,d,d);
+
+            }
+        }
+        return builder.end();
+
+    }
+
+
+
+
 
     @Override
     public void render () {
@@ -143,7 +216,11 @@ public class Test extends ApplicationAdapter {
         modelBatch.begin(perCam);
         modelBatch.render(instance, environment);
         modelBatch.end();
-
+/*
+        modelBatch.begin(perCam);
+        modelBatch.render(instanceArea,environment);
+        modelBatch.end();
+*/
 
         Gdx.gl30.glEnable(GL30.GL_DEPTH_TEST);
         //spriteBatch.setProjectionMatrix(perCam.combined.mul(textTransformation));

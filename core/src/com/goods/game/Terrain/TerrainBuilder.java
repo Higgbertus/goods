@@ -17,6 +17,7 @@ import com.badlogic.gdx.graphics.g3d.model.MeshPart;
 import com.badlogic.gdx.graphics.g3d.utils.MeshBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.Pool;
@@ -66,6 +67,8 @@ public class TerrainBuilder{
                 vertices[offset + 1] = -y;
                 vertices[offset + 2] = 0;
 
+
+
                 offset += 3;
             }
         }
@@ -109,39 +112,5 @@ public class TerrainBuilder{
 
         return mesh;
     }
-
-    private static Model makeTerrain(Material ground, int width, int length, float tileSize)
-    {
-        ModelBuilder builder = new ModelBuilder();
-
-        builder.begin();
-        MeshPartBuilder meshPart = builder.part("top", Gdx.gl30.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates, ground);
-
-        for(int i = 0; i <= width; i++)
-        {
-            for(int j = 0; j <= length; j++)
-            {
-                float x = i - width * tileSize / 2f - tileSize / 2f;
-                float y = j - length * tileSize / 2f - tileSize / 2f;
-
-
-                MeshPartBuilder.VertexInfo info = Pools.obtain(MeshPartBuilder.VertexInfo.class);
-                info.setPos(x, 0f, y);
-                info.setUV(0f, 0f);
-                meshPart.vertex(info);
-                Pools.free(info);
-
-                if(i < width && j < length) {
-
-                    meshPart.index(meshPart.lastIndex(), (short) (i * (length + 1) + j + 1), (short) ((i + 1) * (length + 1) + j));
-                }
-                if(i > 0 && j > 0) {
-                    meshPart.index(meshPart.lastIndex(), (short) (i * (length + 1) + j - 1), (short) ((i - 1) * (length + 1) + j));
-                }
-            }
-        }
-        return builder.end();
-    }
-
 
 }
