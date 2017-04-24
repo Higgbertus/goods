@@ -30,6 +30,7 @@ import com.badlogic.gdx.graphics.g3d.utils.MeshBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.RenderContext;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.utils.Pools;
 import com.goods.game.Terrain.Terrain;
@@ -146,52 +147,53 @@ Renderable renderable;
     }
 
 
-
-
-
-
-
-
-
-
-
-
-    private Model createTerrain(int width, int height, int numberOfChunks, boolean withHeight, Material material) {
+    /**
+     *
+     * @param width Width of the terrain
+     * @param length Length of the terrain
+     * @param numberOfChunks Number of Chunks that will be generated in the square of length*width
+     * @param withHeight generate heights
+     * @param material Material useless?
+     * @return
+     */
+    private Model createTerrain(int width, int length, int numberOfChunks, boolean withHeight, Material material) {
         int offset = 0;
         float width_half = width / 2;
-        float height_half = height / 2;
+        float height_half = length / 2;
         int gridX = numberOfChunks;
         int gridY = numberOfChunks;
         int gridX1 = gridX + 1;
         int gridY1 = gridY + 1;
 
         float segment_width = width / gridX;
-        float segment_height = height / gridY;
+        float segment_height = length / gridY;
 
-        float[] vertices = new float[gridX1 * gridY1 * 3];
-        short[] indices = new short[gridX * gridY * 6];
+
 
         ModelBuilder builder = new ModelBuilder();
         builder.begin();
-        MeshPartBuilder meshPart = builder.part("top", Gdx.gl30.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates, material);
-
-
+        MeshPartBuilder meshPart = builder.part("top", Gdx.gl30.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.ColorUnpacked, material);
+int w = 0;
         for (int iy = 0; iy < gridY1; iy++) {
             float y = iy * segment_height - height_half;
             for (int ix = 0; ix < gridX1; ix++) {
                 float x = ix * segment_width - width_half;
 
-                vertices[offset] = x;
-                vertices[offset + 1] = -y;
-                vertices[offset + 2] = 0;
-                offset += 3;
-
                 MeshPartBuilder.VertexInfo info = Pools.obtain(MeshPartBuilder.VertexInfo.class);
                 //info.setCol(MathUtils.random(),MathUtils.random(),MathUtils.random(),0);
-                info.setCol(Color.YELLOW);
-                info.setPos(x,-y,0);
+
+                if ( MathUtils.random(1) == 0){
+                    info.setPos(x,-y,0);
+                    info.setCol(Color.WHITE);
+                }else{
+                    info.setCol(Color.RED);
+                    info.setPos(x,-y,0);
+                }
+
+                //info.setPos(x,-y,0);
                 info.setNor(0,0,1f);
-                info.setUV(0,1);
+
+                //info.setUV(0,1);
                 meshPart.vertex(info);
                 Pools.free(info);
 
@@ -199,10 +201,18 @@ Renderable renderable;
                 short b = (short) (ix + gridX1 * (iy + 1));
                 short c = (short) ((ix + 1) + gridX1 * (iy + 1));
                 short d = (short) ((ix + 1) + gridX1 * iy);
-                if(iy !=gridY1-1)
-                    meshPart.index(a,b,d,b,c,d);
-               // meshPart.index(a,d,c,b,d,d);
 
+                //todo abcd berechnen siehe skizze...
+                a=0;
+                b=1;
+                c=2;
+                d=3;
+                //if(iy !=gridY1-1)
+                  //  meshPart.index(a,b,d,b,c,d);
+                if (w==0) // Indexierung bei jedem Chunk reicht aus
+                meshPart.index(a,c,d,d,b,a);
+               // meshPart.index(a,d,c,b,d,d);
+                w++;
             }
         }
         return builder.end();
@@ -231,12 +241,12 @@ Renderable renderable;
         shader.end();
         renderContext.end();
 
-     //   modelBatch.begin(perCam);
+        modelBatch.begin(perCam);
         //modelBatch.render(terrainBig);
         //modelBatch.render(instanceArea);
-        //modelBatch.render(instance);
+        modelBatch.render(instance, environment);
        // modelBatch.render(renderable);
-        //modelBatch.end();
+        modelBatch.end();
 
 
         Gdx.gl30.glEnable(GL30.GL_DEPTH_TEST);
