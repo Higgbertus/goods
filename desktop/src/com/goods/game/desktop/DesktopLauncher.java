@@ -4,8 +4,6 @@ import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.badlogic.gdx.graphics.Color;
 import com.goods.game.Main;
-import com.goods.game.MeshExample;
-import com.goods.game.Test;
 
 public class DesktopLauncher {
 	public static void main (String[] arg) {
@@ -19,6 +17,6 @@ public class DesktopLauncher {
         config.initialBackgroundColor= Color.WHITE;
         // new LwjglApplication(new Main(), config);
         //new LwjglApplication(new MeshExample(), config);
-        new LwjglApplication(new Test(), config);
+        new LwjglApplication(new Main(), config);
 	}
 }

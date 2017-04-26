@@ -1,4 +1,4 @@
-package com.goods.game;
+package com.goods.game.TerrainInet;
 
 /**
  * Created by $USER_NAME on 15.04.2017.

@@ -86,25 +86,59 @@ Model tmp;
         */
     }
 
+    private Vector3 calculateNormal(float vX1, float vY1, float vZ1,
+                                    float vX2, float vY2, float vZ2,
+                                    float vX3, float vY3, float vZ3) {
+
+        Vector3 edge1 = new Vector3(vX1, vY1, vZ1).sub(vX2, vY2, vZ2);
+        Vector3 edge2 = new Vector3(vX2, vY2, vZ2).sub(vX3, vY3, vZ3);
+
+        Vector3 crsProd = edge1.crs(edge2); // Cross product between edge1 and edge2
+
+        Vector3 normal = crsProd.nor(); // Normalization of the vector
+
+        return normal;
+    }
+
     private MeshPartBuilder.VertexInfo[] createRectangle(float posX1, float posX2, float posY1, float posY2){
         Color color = new Color(0,MathUtils.random(1f),0,0);
         MeshPartBuilder.VertexInfo[] rectangle = new MeshPartBuilder.VertexInfo[6];
-        rectangle[0] = createVertexInfo(posX1, posY2, color);
-        rectangle[1] = createVertexInfo(posX1, posY1, color);
-        rectangle[2] = createVertexInfo(posX2, posY2, color);
+        Vector3 vec1 = new Vector3(posX1, posY2, 0);
+        Vector3 vec2 = new Vector3(posX1, posY1, 0);
+        Vector3 vec3 = new Vector3(posX2, posY2, 0);
+        Vector3 edge1 = vec1.cpy();
+        edge1.sub(vec2);
+        Vector3 edge2 = vec2.cpy();
+        edge2.sub(vec3);
+        Vector3 normal = edge1.cpy();
+        normal.crs(edge2);
+        normal.nor();
+        rectangle[0] = createVertexInfo(vec1, normal, color);
+        rectangle[1] = createVertexInfo(vec2, normal, color);
+        rectangle[2] = createVertexInfo(vec3, normal, color);
         color = new Color(0,MathUtils.random(1f),0,0);
-        rectangle[3] = createVertexInfo(posX2, posY2, color);
-        rectangle[4] = createVertexInfo(posX1, posY1, color);
-        rectangle[5] = createVertexInfo(posX2, posY1, color);
+        vec1 = new Vector3(posX2, posY2, 0);
+        vec2 = new Vector3(posX1, posY1, 0);
+        vec3 = new Vector3(posX2, posY1, 0);
+        edge1 = vec1.cpy();
+        edge1.sub(vec2);
+        edge2 = vec2.cpy();
+        edge2.sub(vec3);
+        normal = edge1.cpy();
+        normal.crs(edge2);
+        normal.nor();
+        rectangle[3] = createVertexInfo(vec1, normal, color);
+        rectangle[4] = createVertexInfo(vec2, normal, color);
+        rectangle[5] = createVertexInfo(vec3, normal, color);
         return rectangle;
     }
 
-    private MeshPartBuilder.VertexInfo createVertexInfo(float posX, float posY, Color color){
+    private MeshPartBuilder.VertexInfo createVertexInfo(Vector3 position, Vector3 normal, Color color){
         MeshPartBuilder.VertexInfo info = new MeshPartBuilder.VertexInfo();
         // third corner top right
-        info.setPos(posX,posY,0);
+        info.setPos(position);
         info.setCol(color);
-        info.setNor(0, 0, 1f);
+        info.setNor(normal);
         return info;
     }
 
