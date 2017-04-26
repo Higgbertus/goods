@@ -32,10 +32,10 @@ import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.RenderContext;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Pools;
 import com.goods.game.Terrain.Terrain;
 import com.goods.game.Terrain.TerrainBuilder;
-import com.goods.game.Terrain.TerrainWithObjects;
 
 
 import java.util.ArrayList;
@@ -51,14 +51,12 @@ public class Test extends ApplicationAdapter {
     public ArrayList<ModelInstance> instances,instances2;
     public CameraInputController camController;
     public Material material;
-    TerrainBuilder terrainBuilder;
     private MeshBuilder meshBuilder;
     Terrain terrainBig, terrainSmall;
     AssetManager assetManager;
    SpriteBatch spriteBatch;
     BitmapFont font;
     Texture texture;
-    TerrainWithObjects terrainWithObjects;
     public Shader shader;
 
     public RenderContext renderContext;
@@ -111,16 +109,16 @@ Renderable renderable;
 
         texture = new Texture("badlogic.jpg");
         material = new Material(TextureAttribute.createDiffuse(texture));
-        terrainBuilder = new TerrainBuilder();
-        terrainBig = terrainBuilder.createTerrain("Big", 400, 400, 100, true, material, environment);
-        //terrainSmall = terrainBuilder.createTerrain("Small", 10, 10, 10, false, material, environment);
-        //terrainWithObjects = new TerrainWithObjects(terrainBig);
+
         ModelBuilder modelBuilder = new ModelBuilder();
         model = modelBuilder.createBox(5f, 5f, 5f, new Material(ColorAttribute.createDiffuse(Color.GREEN)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
         renderContext = new RenderContext(new DefaultTextureBinder(DefaultTextureBinder.WEIGHTED, 1));
         instances.add(new ModelInstance(model));
         instance = new ModelInstance(model);
-        map = createTerrain(1,1,1,false,new Material(ColorAttribute.createDiffuse(Color.RED)));
+        //map = createTerrainWithShardeVertices(1,1,1,false,new Material(ColorAttribute.createDiffuse(Color.RED)));
+        TerrainBuilder terrainBuilder = new TerrainBuilder();
+        map = terrainBuilder.createTerrainEachTriangleOwnVertices(70,70,70,false);
+
         instanceArea = new ModelInstance(map);
         NodePart blockPart = map.nodes.get(0).parts.get(0);
 
@@ -156,7 +154,7 @@ Renderable renderable;
      * @param material Material useless?
      * @return
      */
-    private Model createTerrain(int width, int length, int numberOfChunks, boolean withHeight, Material material) {
+    private Model createTerrainWithShardeVertices(int width, int length, int numberOfChunks, boolean withHeight, Material material) {
         int offset = 0;
         float width_half = width / 2;
         float height_half = length / 2;
@@ -172,8 +170,11 @@ Renderable renderable;
 
         ModelBuilder builder = new ModelBuilder();
         builder.begin();
-        MeshPartBuilder meshPart = builder.part("top", Gdx.gl30.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.ColorUnpacked, material);
-int w = 0;
+        MeshPartBuilder meshPart = builder.part("top", Gdx.gl30.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.ColorPacked, material);
+float z = 0f;
+        int counter= 0;
+
+        Color color = new Color();
         for (int iy = 0; iy < gridY1; iy++) {
             float y = iy * segment_height - height_half;
             for (int ix = 0; ix < gridX1; ix++) {
@@ -182,39 +183,85 @@ int w = 0;
                 MeshPartBuilder.VertexInfo info = Pools.obtain(MeshPartBuilder.VertexInfo.class);
                 //info.setCol(MathUtils.random(),MathUtils.random(),MathUtils.random(),0);
 
-                if ( MathUtils.random(1) == 0){
-                    info.setPos(x,-y,0);
+                if (withHeight) {
+                    z = MathUtils.random(20);
+                    info.setPos(x, -y, 0);
                     info.setCol(Color.WHITE);
-                }else{
-                    info.setCol(Color.RED);
-                    info.setPos(x,-y,0);
+                } else {
+                    if (counter == 0){
+                        color = new Color(0,MathUtils.random(1f),0,0);
+                        info.setCol(color);
+                        info.setPos(x, -y, 0);
+                    }else{
+                        info.setCol(color);
+                        info.setPos(x, -y, 0);
+                    }
+                    if(counter++ == 2){
+                        counter =0;
+                    }
                 }
 
+
                 //info.setPos(x,-y,0);
-                info.setNor(0,0,1f);
+                info.setNor(0, 0, 1f);
 
                 //info.setUV(0,1);
                 meshPart.vertex(info);
                 Pools.free(info);
 
+                //todo abcd berechnen siehe skizze...
+
+                //if(iy !=gridY1-1)
+                //  meshPart.index(a,b,d,b,c,d);
+                // Indexierung bei jedem Chunk reicht aus
+                // meshPart.index(0,2,3,3,1,0);
+                // meshPart.index(a,c,d,d,b,a);
+                // meshPart.index(a,d,c,b,d,d);
+            }
+        }
+        for (int iy = 0; iy < gridY; iy++) {
+            for (int ix = 0; ix < gridX; ix++) {
                 short a = (short) (ix + gridX1 * iy);
                 short b = (short) (ix + gridX1 * (iy + 1));
                 short c = (short) ((ix + 1) + gridX1 * (iy + 1));
                 short d = (short) ((ix + 1) + gridX1 * iy);
-
-                //todo abcd berechnen siehe skizze...
-                a=0;
-                b=1;
-                c=2;
-                d=3;
-                //if(iy !=gridY1-1)
-                  //  meshPart.index(a,b,d,b,c,d);
-                if (w==0) // Indexierung bei jedem Chunk reicht aus
-                meshPart.index(a,c,d,d,b,a);
-               // meshPart.index(a,d,c,b,d,d);
-                w++;
+                meshPart.index(a,b,d,b,c,d);
             }
         }
+
+
+
+        return builder.end();
+
+    }
+
+    private Model createTerrainEachTriangleOwnVertices(int width, int length, int numberOfChunks, boolean withHeight, Material material) {
+        Vector3 corner1;
+        Vector3 corner2;
+        Vector3 corner3;
+        Vector3 corner4;
+
+        float chunkWidth = width / numberOfChunks;
+        float chunkLength = length / numberOfChunks;
+
+        int gridX =numberOfChunks +1;
+        int gridY =numberOfChunks +1;
+
+        for (int iX = 0; iX < gridX; iX++) {
+            for (int iY = 0; iY < gridY; iY++) {
+
+            }
+        }
+        
+        ModelBuilder builder = new ModelBuilder();
+        builder.begin();
+        MeshPartBuilder meshPart = builder.part("top", Gdx.gl30.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.ColorUnpacked, material);
+
+        MeshPartBuilder.VertexInfo info = Pools.obtain(MeshPartBuilder.VertexInfo.class);
+        //info.setCol(MathUtils.random(),MathUtils.random(),MathUtils.random(),0);
+
+
+
         return builder.end();
 
     }
@@ -241,12 +288,12 @@ int w = 0;
         shader.end();
         renderContext.end();
 
-        modelBatch.begin(perCam);
+        //modelBatch.begin(perCam);
         //modelBatch.render(terrainBig);
         //modelBatch.render(instanceArea);
-        modelBatch.render(instance, environment);
+        //modelBatch.render(instance, environment);
        // modelBatch.render(renderable);
-        modelBatch.end();
+        //modelBatch.end();
 
 
         Gdx.gl30.glEnable(GL30.GL_DEPTH_TEST);
@@ -269,8 +316,9 @@ int w = 0;
     @Override
     public void dispose () {
         modelBatch.dispose();
-        terrainSmall.getMeshPart().mesh.dispose();
+     //   terrainSmall.getMeshPart().mesh.dispose();
         model.dispose();
+        map.dispose();
         spriteBatch.dispose();
         assetManager.dispose();
 //        terrainWithObjects.dispose();

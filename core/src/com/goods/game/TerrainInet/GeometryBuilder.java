@@ -102,6 +102,16 @@ public class GeometryBuilder {
             }
         }
 
+
+        if (withHeight) {
+            float[] d = ImprovedNoise.heightData(numberOfChunks);
+            offset = 2;
+            for (int f = 0; f < vertices.length / 3; f++) {
+                vertices[offset] = d[f];
+                offset += 3;
+            }
+        }
+
         Mesh mesh = new Mesh(true,
                 vertices.length / 3,
                 indices.length,
