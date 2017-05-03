@@ -126,13 +126,13 @@ Renderable renderable;
         shader.init();
 
         //textTransformation.idt().scl(0.2f).rotate(0, 0, 1, 45).translate(-50, 2, 25f);
-        assetManager.load("models/leaftree_1.g3db",Model.class);
+        assetManager.load("models/House.g3db",Model.class);
         loading = true;
     }
 
     Matrix4 textTransformation = new Matrix4();
     private void doneLoading() {
-        Model ship = assetManager.get("models/leaftree_1.g3db", Model.class);
+        Model ship = assetManager.get("models/House.g3db", Model.class);
         ModelInstance shipInstance = new ModelInstance(ship);
         instance = shipInstance;
         loading = false;
@@ -156,12 +156,12 @@ Renderable renderable;
         shader.end();
         renderContext.end();
 
-        //modelBatch.begin(perCam);
+        modelBatch.begin(perCam);
         //modelBatch.render(terrainBig);
-        //modelBatch.render(instanceArea);
-        //modelBatch.render(instance, environment);
-       // modelBatch.render(renderable);
-        //modelBatch.end();
+        modelBatch.render(instanceArea);
+        modelBatch.render(instance, environment);
+        modelBatch.render(renderable);
+        modelBatch.end();
 
 
         Gdx.gl30.glEnable(GL30.GL_DEPTH_TEST);
