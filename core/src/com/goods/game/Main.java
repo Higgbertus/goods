@@ -81,7 +81,8 @@ Renderable renderable;
         environment = new Environment();
 
         environment.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1f));
-        environment.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.8f, -0.2f));
+        // rgb + position (x,y,z)
+        environment.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.8f, 10f));
 
         modelBatch = new ModelBatch();
 
@@ -111,14 +112,14 @@ Renderable renderable;
         instances.add(new ModelInstance(model));
         instance = new ModelInstance(model);
         TerrainBuilder terrainBuilder = new TerrainBuilder();
-        map = terrainBuilder.createTerrainEachTriangleOwnVertices(70,70,70,false);
+        map = terrainBuilder.createTerrainEachTriangleOwnVertices(30,30,30,false);
 
         instanceArea = new ModelInstance(map);
         NodePart blockPart = map.nodes.get(0).parts.get(0);
 
         renderable = new Renderable();
         blockPart.setRenderable(renderable);
-        renderable.environment = null;
+        renderable.environment = environment;
         renderable.worldTransform.idt();
         String vert = Gdx.files.internal("shader/vertexShader.glsl").readString();
         String frag = Gdx.files.internal("shader/fragmentShader.glsl").readString();
@@ -149,17 +150,16 @@ Renderable renderable;
         Gdx.gl30.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         Gdx.gl30.glClear(GL30.GL_COLOR_BUFFER_BIT|GL30.GL_DEPTH_BUFFER_BIT);
 
-
-        renderContext.begin();
-        shader.begin(perCam, renderContext);
-        shader.render(renderable);
-        shader.end();
-        renderContext.end();
+//        renderContext.begin();
+//        shader.begin(perCam, renderContext);
+//        shader.render(renderable);
+//        shader.end();
+//        renderContext.end();
 
         modelBatch.begin(perCam);
         //modelBatch.render(terrainBig);
-        modelBatch.render(instanceArea);
-        modelBatch.render(instance, environment);
+        modelBatch.render(instanceArea, environment);
+        //modelBatch.render(instance, environment);
         modelBatch.render(renderable);
         modelBatch.end();
 
