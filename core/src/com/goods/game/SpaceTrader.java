@@ -3,6 +3,7 @@ package com.goods.game;
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.graphics.Color;
@@ -58,7 +59,6 @@ public class SpaceTrader extends InputAdapter implements ApplicationListener {
         FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
         parameter.size = 25;
         parameter.color = Color.RED;
-
         font = generator2.generateFont(parameter); // font size 12 pixels
         generator2.dispose(); // don't forget to dispose to avoid memory leaks!
 
@@ -71,51 +71,13 @@ public class SpaceTrader extends InputAdapter implements ApplicationListener {
 
         instances = new ArrayList<GameObjectModelInstance>();
         spaceMap = new SpaceMap();
-        spaceMap.createMap(1000,1000,4,false,0,0);
+        spaceMap.createMap(1000,1000);
         spaceMap.fillMapWithObjects();
-
-       // modelInstance = spaceMap.createFrame();
-
 
         for (GameObjectModelInstance gameObjects : spaceMap.getAllObjects()) {
             instances.add(gameObjects);
         }
 
-//        for (GameObjectModelInstance gameObjects : spaceMap.getAllObjects()) {
-//            instances.add(gameObjects);
-//        }
-
-
-
-
-
-/*
-        for (PlanetObjectModelInstance planetsTMP : spaceMap.getPlanets()) {
-                 instances.add(planetsTMP);
-        }
-
-
-
-        instances = new ArrayList<ModelInstance>();
-        ModelBuilder modelBuilder = new ModelBuilder();
-        model = modelBuilder.createBox(5f, 5f, 5f, new Material(ColorAttribute.createDiffuse(Color.GREEN)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-        renderContext = new RenderContext(new DefaultTextureBinder(DefaultTextureBinder.WEIGHTED, 1));
-        //instances.add(new ModelInstance(model));
-        planets = modelBuilder.createSphere(4f,4f,4f,24,24,new Material(ColorAttribute.createDiffuse(Color.RED)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-        ModelInstance modelinstance = new ModelInstance(planets);
-        // modelinstance.transform.setToTranslation(5f,5f,5f);
-        instances.add(modelinstance);
-        planets = modelBuilder.createSphere(6f,6f,6f,24,24,new Material(ColorAttribute.createDiffuse(Color.GREEN)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-        modelinstance = new ModelInstance(planets);
-        modelinstance.transform.setToTranslation(5f,5f,0f);
-        instances.add(modelinstance);
-        // 3 floats= size, 2 int = used vertices
-        //createSphere(2f,2f,2f,100,100,new Material(ColorAttribute.createDiffuse(Color.YELLOW)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-        planets = modelBuilder.createSphere(2f,2f,2f,100,100,new Material(ColorAttribute.createDiffuse(Color.YELLOW)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-        modelinstance = new ModelInstance(planets);
-        modelinstance.transform.setToTranslation(-10f,-5f,0f);
-        instances.add(modelinstance);
-*/
         // Kamera 67Grad, aspect ratio
         perCam = new PerspectiveCamera(67, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         // Position rechtsX  hochY  zurückZ
@@ -132,19 +94,10 @@ public class SpaceTrader extends InputAdapter implements ApplicationListener {
 
         Gdx.input.setInputProcessor(new InputMultiplexer(this,camController));
 
-
-
         modelBatch = new ModelBatch();
     }
 
-    @Override
-    public void resize(int width, int height) {
 
-    }
-int a = 1;
-    Matrix4 mtx = new Matrix4();
-    protected Quaternion rotation = new Quaternion();
-    protected static Quaternion q = new Quaternion();
     @Override
     public void render () {
         createDebugText();
@@ -153,11 +106,6 @@ int a = 1;
         Gdx.gl30.glClearColor(0,0,0,1);
         Gdx.gl30.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         Gdx.gl30.glClear(GL30.GL_COLOR_BUFFER_BIT|GL30.GL_DEPTH_BUFFER_BIT);
-
-
-
-
-        // Wichtig alles mit SetTo überschreibt alle vorherigen werte! es wird also ein neuer wert festgelegt!
 
         // move
         // working
@@ -183,7 +131,6 @@ int a = 1;
 //        }
 
         // Rotate planets around Star
-
         for (GameObjectModelInstance instance :instances) {
             if (instance.getParentPosition() != null){
                 Vector3 starPos = instance.getParentPosition();
@@ -193,14 +140,8 @@ int a = 1;
             }
         }
 
-
-
-
-
         modelBatch.begin(perCam);
         modelBatch.render(instances, environment);
-        //modelBatch.render(modelInstance, environment);
-
         modelBatch.end();
 
 
@@ -210,15 +151,6 @@ int a = 1;
         spriteBatch.end();
     }
 
-    @Override
-    public void pause() {
-
-    }
-
-    @Override
-    public void resume() {
-
-    }
 
     StringBuilder sb = new StringBuilder();
     private void createDebugText(){
@@ -231,6 +163,18 @@ int a = 1;
         sb.append("\nPlanet: ").append(planetInfos);
     }
 
+    @Override
+    public boolean keyDown(int keycode) {
+        if (keycode == Input.Keys.SPACE){
+            perCam.position.set(500, 500, 500);
+            perCam.lookAt(500,500,0);
+            perCam.near = 1f;
+            perCam.far = 10000f;
+            perCam.update();
+            return true;
+        }
+        return false;
+    }
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
@@ -283,5 +227,20 @@ int a = 1;
             }
         }
         return result;
+    }
+
+    @Override
+    public void resize(int width, int height) {
+
+    }
+
+    @Override
+    public void pause() {
+
+    }
+
+    @Override
+    public void resume() {
+
     }
 }

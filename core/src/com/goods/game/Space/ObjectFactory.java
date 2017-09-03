@@ -32,8 +32,6 @@ public class ObjectFactory {
     private Random random;
     private float ressourceDepositeFactor;
     private GameObjectModelInstance gameObjectModelInstance;
-    private int minPlanetStarDistance = 4, maxPlanetStarDistance = 4;
-    private int minStarStarDistance = 10;
 
 
     public ObjectFactory() {

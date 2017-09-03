@@ -94,8 +94,6 @@ public class GameObjectModelInstance extends ModelInstance {
         rotation = new Vector3(0,a,b);
     }
 
-
-
     private float distanceToStar(){
         return this.getParentPosition().dst(this.getPos());
     }
@@ -104,15 +102,10 @@ public class GameObjectModelInstance extends ModelInstance {
         orbitRotationSpeed = 10f / distanceToStar();
     }
 
-
-
     public Vector3 getCenter() {
         return center;
     }
 
-    public Vector3 getRealCenter(){
-        return this.transform.getTranslation(center1).add(size/2,size/2,0);
-    }
     public Vector3 getPos() {
         return position.cpy();
     }
@@ -139,20 +132,6 @@ public class GameObjectModelInstance extends ModelInstance {
 
     protected void setSize(float size) {
         this.size = size;
-    }
-
-    protected int getMass() {
-        return mass;
-    }
-
-    protected void setMass(int mass) {
-        this.mass = mass;
-    }
-    public double getSurfaceArea() {
-        return surfaceArea;
-    }
-    public double getVolume() {
-        return volume;
     }
 
     public static int getId() {
