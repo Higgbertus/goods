@@ -173,7 +173,8 @@ public class TerrainBuilder {
         //new Vector3(1,2,3)
         return new Vector3(1,2,3);
     }
-private int next =0;
+
+    private int next =0;
     private MeshPartBuilder.VertexInfo[] createRectangle(float posX1, float posX2, float posY1, float posY2, int iX, int iY){
 
         /*      Rectangle with triangles and vertex positions

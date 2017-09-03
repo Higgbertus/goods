@@ -43,7 +43,7 @@ public class Main extends ApplicationAdapter {
     public Environment environment;
     public PerspectiveCamera perCam;
     public ModelBatch modelBatch;
-    public Model model, map;
+    public Model model, map, planet1, planet2, planets;
     public ModelInstance instance, instanceArea;
     public ArrayList<ModelInstance> instances,instances2;
     public CameraInputController camController;
@@ -75,14 +75,15 @@ Renderable renderable;
 
 
         instances = new ArrayList<ModelInstance>();
-        instances2 = new ArrayList<ModelInstance>();
+        //instances2 = new ArrayList<ModelInstance>();
 
         // Lichteinstellungen
         environment = new Environment();
 
         environment.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1f));
         // rgb + position (x,y,z)
-        environment.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.8f, 10f));
+        //environment.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.8f, 10f));
+        environment.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, 10f, 5f, 10f));
 
         modelBatch = new ModelBatch();
 
@@ -107,10 +108,12 @@ Renderable renderable;
         material = new Material(TextureAttribute.createDiffuse(texture));
 
         ModelBuilder modelBuilder = new ModelBuilder();
-        model = modelBuilder.createBox(5f, 5f, 5f, new Material(ColorAttribute.createDiffuse(Color.GREEN)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-        renderContext = new RenderContext(new DefaultTextureBinder(DefaultTextureBinder.WEIGHTED, 1));
-        instances.add(new ModelInstance(model));
-        instance = new ModelInstance(model);
+
+
+
+
+
+        //instance = new ModelInstance(model);
         TerrainBuilder terrainBuilder = new TerrainBuilder();
         map = terrainBuilder.createTerrainEachTriangleOwnVertices(30,30,30,false);
 
@@ -133,9 +136,12 @@ Renderable renderable;
 
     Matrix4 textTransformation = new Matrix4();
     private void doneLoading() {
+        /*
         Model ship = assetManager.get("models/House.g3db", Model.class);
         ModelInstance shipInstance = new ModelInstance(ship);
         instance = shipInstance;
+        */
+        //instance = new ModelInstance(planet1);
         loading = false;
     }
 
@@ -159,8 +165,9 @@ Renderable renderable;
         modelBatch.begin(perCam);
         //modelBatch.render(terrainBig);
         modelBatch.render(instanceArea, environment);
+        //modelBatch.render(instances, environment);
         //modelBatch.render(instance, environment);
-        modelBatch.render(renderable);
+       // modelBatch.render(renderable);
         modelBatch.end();
 
 
