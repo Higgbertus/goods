@@ -1,6 +1,7 @@
 package com.goods.game.Space.Planets;
 
 import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector3;
 import com.goods.game.Space.GameObjectModelInstance;
 import com.goods.game.Space.ObjectType;
@@ -21,7 +22,6 @@ public class PlanetObjectModelInstance extends GameObjectModelInstance{
     // Planet Settings
     private int buildingSpaces;
     private PlanetType type;
-
     // Factor to calculate the RessourceObject per Size
     private float ressourceDepositeFactor;
 
@@ -42,20 +42,22 @@ public class PlanetObjectModelInstance extends GameObjectModelInstance{
         this.hasLifes = hasLifes;
         this.isHostileEnvironment = isHostileEnvironment;
         this.type = type;
+
+    }
+    public float getOrbitRotationSpeed() {
+        return orbitRotationSpeed;
+    }
+
+    private float distanceToStar(){
+        return this.getParentPosition().dst(this.transform.getTranslation(new Vector3()));
     }
 
 
-    public Vector3 getCenter() {
-        return center;
-    }
+    private float orbitRotationSpeed;
 
 
-    public Vector3 getPos() {
-        return position;
-    }
-
-    public void setPos(Vector3 position) {
-        this.position = position;
+    public void setOrbitRotationSpeed() {
+        orbitRotationSpeed = 10f / distanceToStar();
     }
 
     public ArrayList<RessourceObject> getRessources() {
@@ -83,6 +85,6 @@ public class PlanetObjectModelInstance extends GameObjectModelInstance{
 
     @Override
     public String toString() {
-        return type.name()+super.getId();
+        return type.name()+super.getId()+"; Pos:"+this.transform.getTranslation(new Vector3());
     }
 }

@@ -1,10 +1,11 @@
 package com.goods.game.Space;
 
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.math.collision.BoundingBox;
+import com.badlogic.gdx.math.collision.Ray;
 
 import java.util.ArrayList;
 
@@ -13,12 +14,10 @@ import java.util.ArrayList;
  */
 
 public class GameObjectModelInstance extends ModelInstance {
+public com.goods.game.Space.Shapes.Shape shape;
 
-    public final Vector3 center = new Vector3();
-    public final Vector3 dimensions = new Vector3();
-    public final float radius;
     private Vector3 origin = new Vector3();
-    private final static BoundingBox bounds = new BoundingBox();
+
     private Vector3 center1 = new Vector3();
     // GameObjectModelInstance Settings
     private final int sizeFactor = 10;
@@ -27,10 +26,10 @@ public class GameObjectModelInstance extends ModelInstance {
     private double surfaceArea;
     protected double volume;
     private String name;
-    private static int id;
+    private int id;
     private boolean isAlive, hasChildObjects =false;
     private float selfRotationSpeed = 0.4f;
-    private Vector3 rotation;
+    private ObjectType type;
 
     public float getSelfRotationSpeed() {
         return selfRotationSpeed;
@@ -40,13 +39,7 @@ public class GameObjectModelInstance extends ModelInstance {
         this.selfRotationSpeed = selfRotationSpeed;
     }
 
-    public float getOrbitRotationSpeed() {
-        return orbitRotationSpeed;
-    }
 
-
-
-    private float orbitRotationSpeed = 4f;
     public boolean hasChildObjects() {
         return hasChildObjects;
     }
@@ -54,7 +47,6 @@ public class GameObjectModelInstance extends ModelInstance {
 // Planet Environment
 
     // Helper
-    private Vector3 position;
 
     public Vector3 getParentPosition() {
         return parentPosition;
@@ -67,52 +59,39 @@ public class GameObjectModelInstance extends ModelInstance {
     private Vector3 parentPosition;
     private ArrayList<GameObjectModelInstance> orbit;
 
-    public Vector3 getRotation() {
-        return rotation;
-    }
 
     public GameObjectModelInstance(Model model, float size, ObjectType type) {
         super(model);
         orbit = new ArrayList<GameObjectModelInstance>();
         isAlive = true;
-        calculateBoundingBox(bounds);
-        bounds.getCenter(center);
-        bounds.getDimensions(dimensions);
-        radius = dimensions.len() / 2f;
+
         this.transform.getScale(origin);
         id++;
+        this.type = type;
         this.name = type.name()+id;
         this.size = size;
         volume = ((4 * MathUtils.PI * Math.pow(size*sizeFactor,3))/3);
         surfaceArea = 4 * MathUtils.PI * Math.pow(size*sizeFactor,2);
-        position = new Vector3();
-        int a,b;
-        do{
-            a = MathUtils.random(1);
-            b = MathUtils.random(1);
-        }while(a+b==0);
-        rotation = new Vector3(0,a,b);
+
     }
 
-    private float distanceToStar(){
-        return this.getParentPosition().dst(this.getPos());
+    public ObjectType getType() {
+        return type;
     }
 
-    public void setOrbitRotationSpeed() {
-        orbitRotationSpeed = 10f / distanceToStar();
+    public boolean isVisible(Camera cam) {
+        return shape == null ? false : shape.isVisible(transform, cam);
     }
 
-    public Vector3 getCenter() {
-        return center;
+    /** @return -1 on no intersection, or when there is an intersection: the squared distance between the center of this
+     * object and the point on the ray closest to this object when there is intersection. */
+    /** @return -1 on no intersection, or when there is an intersection: the squared distance between the center of this
+     * object and the point on the ray closest to this object when there is intersection. */
+    public float intersects(Ray ray) {
+        return shape == null ? -1f : shape.intersects(transform, ray);
     }
 
-    public Vector3 getPos() {
-        return position.cpy();
-    }
 
-    public void setPos(Vector3 position) {
-        this.position = position;
-    }
 
     public void addObjectToOrbit(GameObjectModelInstance newObject){
         orbit.add(newObject);
@@ -134,13 +113,13 @@ public class GameObjectModelInstance extends ModelInstance {
         this.size = size;
     }
 
-    public static int getId() {
+    public int getId() {
         return id;
     }
 
     @Override
     public String toString() {
-        return name+"; "+"Pos:"+position.toString()+"; Size:"+size;
+        return name+"; "+"Pos:"+this.transform.getTranslation(new Vector3())+"; Size:"+size;
     }
 
 

@@ -19,16 +19,35 @@ import java.util.ArrayList;
 public class StarObjectModelInstance extends GameObjectModelInstance{
     private static ObjectType oType = ObjectType.Star;
 
+    private Vector3 rotationVector3;
     // Planet Settings
 
     // Helper
     public StarObjectModelInstance(Model model, float size) {
         super(model, size, oType);
         setSelfRotationSpeed(0.5f);
+        setRandomRotation();
+    }
+
+    private void setRandomRotation(){
+        int a,b;
+        do{
+            a = MathUtils.random(1);
+            b = MathUtils.random(1);
+        }while(a+b!=1);
+        rotationVector3 = new Vector3(a,0,b);
     }
 
 
-    public Vector3 getCenter() {
-        return center;
+    public Vector3 getRotation(){
+        return rotationVector3;
     }
+
+
+
+    @Override
+    public String toString() {
+        return oType.name()+super.getId()+"; Pos:"+this.transform.getTranslation(new Vector3());
+    }
+
 }
