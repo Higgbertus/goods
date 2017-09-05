@@ -5,6 +5,7 @@ import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.badlogic.gdx.graphics.Color;
 import com.goods.game.Main;
 import com.goods.game.SpaceTrader;
+import com.goods.game.SpaceTraderTEST;
 
 public class DesktopLauncher {
 	public static void main (String[] arg) {
@@ -19,7 +20,8 @@ public class DesktopLauncher {
         // new LwjglApplication(new Main(), config);
         //new LwjglApplication(new MeshExample(), config);
        // new LwjglApplication(new Main(), config);
-		new LwjglApplication(new SpaceTrader(), config);
+		//new LwjglApplication(new SpaceTrader(), config);
+		new LwjglApplication(new SpaceTraderTEST(), config);
 		// gradlew desktop:dis
 	}
 }

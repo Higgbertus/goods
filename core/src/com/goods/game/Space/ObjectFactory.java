@@ -36,7 +36,7 @@ public class ObjectFactory {
     private BoundingBox bounds = new BoundingBox();
     protected com.goods.game.Space.Shapes.Shape sphereShape;
     protected com.goods.game.Space.Shapes.Shape ressourceShape;
-    protected com.goods.game.Space.Shapes.Shape shipShape;
+    protected com.goods.game.Space.Shapes.Shape coneShape;
     private Vector3 front, back;
 
 
@@ -70,7 +70,6 @@ public class ObjectFactory {
 
             }
             case Ship:{
-
                 model = modelBuilder.createCone(size,size*3,size,24,new Material(ColorAttribute.createDiffuse(Color.GRAY)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
                 gameObjectModelInstance = new TranspoterShip(model,size);
                 gameObjectModelInstance.transform.setTranslation(position);

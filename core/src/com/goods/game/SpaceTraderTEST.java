@@ -9,57 +9,50 @@ import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL30;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
+import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g3d.Environment;
+import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
-import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
-import com.badlogic.gdx.graphics.g3d.utils.RenderContext;
-import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Matrix4;
-import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
 import com.goods.game.Space.GameObjectModelInstance;
-import com.goods.game.Space.Planets.PlanetObjectModelInstance;
+import com.goods.game.Space.Shapes.SphereShape;
 import com.goods.game.Space.Ships.ShipObjectModelInstance;
+import com.goods.game.Space.Ships.TranspoterShip;
 import com.goods.game.Space.SpaceMap;
-import com.goods.game.Space.Stars.StarObjectModelInstance;
+import com.goods.game.Space.Stars.Star;
 
 import java.util.ArrayList;
 
-public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
+public class SpaceTraderTEST extends ApplicationAdapter implements InputProcessor {
     public Environment environment;
     public PerspectiveCamera perCam;
     public ModelBatch modelBatch;
 
-    public ArrayList<ModelInstance> instances2;
     public CameraInputController camController;
     SpriteBatch spriteBatch;
     BitmapFont font;
     private ArrayList<GameObjectModelInstance> instances;
 
-    public RenderContext renderContext;
-    private Object model;
-    private ModelBuilder modelBuilder;
-    private Model planets;
     private SpaceMap spaceMap;
     private int selected =-1;
     String planetInfos = "";
-    private ModelInstance modelInstance;
 
     // Camera Settings
     private final int zoomSpeed = 15;
     private final int rotateAngle = 70;
     private final float translateUnits = 300f;
-    private final Vector3 camPosition= new Vector3(500,500,1000),camDirection= new Vector3(500,500,0);
-
+    private final Vector3 camPosition= new Vector3(650,650,100),camDirection= new Vector3(800,800,0);
+    ShipObjectModelInstance shipObjectModelInstance;
 
     public void create () {
         Gdx.app.setLogLevel(Application.LOG_DEBUG);
@@ -101,11 +94,44 @@ public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
         camController = new CameraInputController(perCam);
 
         Gdx.input.setInputProcessor(new InputMultiplexer(this,camController));
+
+
+        instances = new ArrayList<GameObjectModelInstance>();
         modelBatch = new ModelBatch();
+        Model model;
+        ModelBuilder modelBuilder = new ModelBuilder();
+        BoundingBox bounds = new BoundingBox();
+        GameObjectModelInstance gameObjectModelInstance;
+
+        com.goods.game.Space.Shapes.Shape sphereShape;
+        model = modelBuilder.createSphere(5,5,5,24,24,new Material(ColorAttribute.createDiffuse(Color.YELLOW)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
+        gameObjectModelInstance = new Star(model,5);
+        gameObjectModelInstance.transform.setTranslation(new Vector3(1,1,0));
+        gameObjectModelInstance.calculateBoundingBox(bounds);
+        sphereShape = new SphereShape(bounds);
+        gameObjectModelInstance.shape = sphereShape;
+        instances.add(gameObjectModelInstance);
+
+        model = modelBuilder.createSphere(10,10,10,24,24,new Material(ColorAttribute.createDiffuse(Color.YELLOW)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
+        gameObjectModelInstance = new Star(model,5);
+        gameObjectModelInstance.transform.setTranslation(new Vector3(800,800,0));
+        gameObjectModelInstance.calculateBoundingBox(bounds);
+        sphereShape = new SphereShape(bounds);
+        gameObjectModelInstance.shape = sphereShape;
+        instances.add(gameObjectModelInstance);
+
+        model = modelBuilder.createCone(5,5*3,5,24,new Material(ColorAttribute.createDiffuse(Color.GRAY)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
+        shipObjectModelInstance = new TranspoterShip(model,5);
+        shipObjectModelInstance.transform.setTranslation(new Vector3(700,700,0));
+        shipObjectModelInstance.calculateBoundingBox(bounds);
+        sphereShape = new SphereShape(bounds);
+        shipObjectModelInstance.shape = sphereShape;
+//        shipObjectModelInstance.setDestination(new Vector3(300,100,0));
+//        shipObjectModelInstance.setDirection((new Vector3(300,100,0).sub(200,150,0)).nor());
 
 
 
-        createSpaceMap();
+        //createSpaceMap();
     }
 
     private void createSpaceMap(){
@@ -124,123 +150,42 @@ public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
         Gdx.gl30.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         Gdx.gl30.glClear(GL30.GL_COLOR_BUFFER_BIT|GL30.GL_DEPTH_BUFFER_BIT);
 
-        // move
-        // working
-        // instances.get(0).transform.translate(1,0,0);
+        // rotate ship in direction to target
+//        Vector3 destination = new Vector3();
+//        Vector3 direction = new Vector3();
+//        Vector3 direction2 = new Vector3();
+//        Vector3 shipPos = new Vector3();
+//
+//        destination = shipObjectModelInstance.getDestination();
+//        direction = shipObjectModelInstance.getDirection();
+//        shipObjectModelInstance.transform.getTranslation(shipPos);
 
-
-        //working
-        //instances.get(0).transform.rotate(new Vector3(1,1,1), 1);
-
-        // So rotiert der planet in der umlaufbahn vom stern, alle 3 gehen unterschiedlich Stern = 0,0,0
-        //instances.get(1).transform.setTranslation(0,0,0).rotate(new Vector3(0,1,0), 1).translate(10,0,0);
-        //instances.get(1).transform.setTranslation(0,0,0).rotate(new Vector3(0,0,1), 1).translate(0,10,0);
-        //instances.get(1).transform.setTranslation(0,0,0).rotate(new Vector3(1,1,0), 1).translate(0,0,10);
-
-        // So rotiert der planet in der umlaufbahn vom stern, alle 3 gehen unterschiedlich Stern = 10,25,0
-        //instances.get(1).transform.setTranslation(10,25,0).rotate(new Vector3(0,1,0), 1).translate(10,0,0);
-        //instances.get(1).transform.setTranslation(10,25,0).rotate(new Vector3(0,0,1), 1).translate(0,10,0);
-       // instances.get(1).transform.setTranslation(10,25,0).rotate(new Vector3(1,1,0), 1).translate(0,0,10);
-
-        // Rotate planets (self rotation on the own center)
-//        for (GameObjectModelInstance instance :instances) {
-//            instance.transform.rotate(new Vector3(1,1,0), instance.getSelfRotationSpeed());
-//        }
-
-        // TODO: 04.09.2017 planeten drehen durch nach umstellung getpos() zu transform.getTranslation... komischerweise gehen feste werte wie 1f auch nicht wird alles aufsummiert 
-
-        // rotate and translate Planets around Star
-        for (StarObjectModelInstance star :spaceMap.getStars()) {
-
-            for (GameObjectModelInstance planet : spaceMap.getAllPlanetsFromStar(star)) {
-
-//                PlanetObjectModelInstance planetInstance = (PlanetObjectModelInstance) instance;
-//              Vector3 starPos = planet.getParentPosition();
-//                Vector3 planetOffset = new Vector3();
-//                planetInstance.transform.getTranslation(planetOffset);
-//                planetOffset.sub(starPos);
-                // // TODO: 04.09.2017 problem wennn die starpos nicht ein fixer wert ist sonder mit transform.getTranslation immer die vorrige rotation mit einbezogen wird bringt ein ständiges beschleunigen
-                //instance.transform.setTranslation(starPos).rotate(planetInstance.getRotation(), planetInstance.getOrbitRotationSpeed()).translate(planetOffset);
-                //instance.transform.setTranslation(starPos).setFromEulerAngles(1,1,1).translate(planetOffset);
-
-                // TODO: 04.09.2017 es sind nur 2 rotationsarten möglich im Star object erzeugt
-                Vector3 starPos = planet.getParentPosition();
-                Vector3 planetOffset = new Vector3();
-                planet.transform.getTranslation(planetOffset);
-                planetOffset.sub(starPos);
-                Vector3 rot = new Vector3(star.getRotation());
-                float a = ((PlanetObjectModelInstance) planet).getOrbitRotationSpeed();
-                rot.scl(a);
-                Matrix4 transform = new Matrix4();
-                Matrix4 tmp = new Matrix4();
-                transform.setTranslation(starPos);
-                tmp.setFromEulerAngles(rot.x,rot.y,rot.z);
-                transform.mul(tmp);
-                transform.translate(planetOffset);
-                planet.transform.set(transform);
-            }
-
-
-                ShipObjectModelInstance shipInstance = (ShipObjectModelInstance) spaceMap.getShip(0);
-           if (shipInstance.isMoving()){
-               if (shipInstance.transform.getTranslation(new Vector3()).dst(shipInstance.getDestination())<10){
-                   shipInstance.setMoving(false);
-               }else{
-                   Vector3 baseDirection = shipInstance.getDestination();
-
-                   Vector3 direction = new Vector3();
-                   //Quaternion rotation = your_quaternion;
-                   direction.set(baseDirection);
-                   //direction.mul(rotation);
-
-                   final float speed = 5f; // 5 units per second
-                   Vector3 translation = new Vector3();
-                   translation.set(direction);
-                   translation.scl(speed);
-
-                   shipInstance.transform.trn(translation);
-
-//                   Vector3 dest = shipInstance.getDestination();
-//                   shipInstance.transform.trn(dest.x*2,dest.y*2,dest.z*2);
-               }
-            //   shipInstance.transform.translate(1,1,1);
-           }else{
-                shipInstance.setMoving(true);
-                // get a random star as target
-                GameObjectModelInstance planet;
-                planet = spaceMap.getStar(MathUtils.random(spaceMap.getStars().size()-1));
-                Vector3 target = new Vector3();
-                planet.transform.getTranslation(target);
-               shipInstance.setDestination(target.nor());
-               shipInstance.setMoving(true);
-
-           }
-            // move Ship
-
-        }
-
+if (shipObjectModelInstance.isMoving()){
+    if (shipObjectModelInstance.hasReachedDestination()){
+        shipObjectModelInstance.setMoving(false);
+    }else{
+       // shipObjectModelInstance.moveShip();
+        shipObjectModelInstance.rotateToTarget(new Vector3(800,800,0));
+    }
+}else{
+    shipObjectModelInstance.setDestination(instances.get(0).transform.getTranslation(new Vector3()));
+    shipObjectModelInstance.setMoving(true);
+}
+//        Matrix4 transform = new Matrix4();
+//        Matrix4 tmp = new Matrix4();
+//        tmp.setFromEulerAngles(100,0,0);
+//        transform.mul(tmp);
+//        shipObjectModelInstance.transform.set(transform);
 
         modelBatch.begin(perCam);
         visibleCount = 0;
-        for (final StarObjectModelInstance star : spaceMap.getStars()) {
-            if (star.isVisible(perCam)) {
-                modelBatch.render(star, environment);
-                visibleCount++;
-            }
-            for (final GameObjectModelInstance planet : spaceMap.getAllPlanetsFromStar(star)) {
-                if (planet.isVisible(perCam)) {
-                    modelBatch.render(planet, environment);
-                    visibleCount++;
-                }
-            }
-        }
-        for (final GameObjectModelInstance ship : spaceMap.getShips()) {
-            if (ship.isVisible(perCam)) {
-                modelBatch.render(ship, environment);
+        modelBatch.render(shipObjectModelInstance, environment);
+        for (final GameObjectModelInstance instance : instances) {
+            if (instance.isVisible(perCam)) {
+                modelBatch.render(instance, environment);
                 visibleCount++;
             }
         }
-        //modelBatch.render(instances, environment);
         modelBatch.end();
 
 
@@ -266,8 +211,7 @@ public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
     public void dispose () {
         modelBatch.dispose();
         spriteBatch.dispose();
-        spaceMap.clear();
-        //instances.clear();
+        instances.clear();
     }
 
     //region Camera Changes
@@ -295,7 +239,7 @@ public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
         startY = screenY;
         // Is a Object clicked?
         //selected = getObject(screenX, screenY);
-        selected = getObject2(screenX, screenY);
+        selected = getObject(screenX, screenY);
         if (selected >= 0){
             return true;
         }else{
@@ -310,7 +254,7 @@ public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
 //            if (selected == getObject(screenX, screenY)){
 //                setSelected(selected);
 //            }
-            if (selected == getObject2(screenX, screenY)){
+            if (selected == getObject(screenX, screenY)){
                 setSelected(selected);
             }
             selected = -1;
@@ -323,22 +267,8 @@ public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
 
     public void setSelected (int value) {
         if (selected == value) {
-            planetInfos = spaceMap.getAllObjects().get(value).toString();
+            planetInfos = instances.get(selected).toString();
         }
-    }
-
-    public int getObject2(int screenX, int screenY) {
-        Ray ray = perCam.getPickRay(screenX, screenY);
-        int result = -1;
-        float distance = -1;
-        for (int i = 0; i < spaceMap.getAllObjects().size(); ++i) {
-            final float dist2 = spaceMap.getAllObjects().get(i).intersects(ray);
-            if (dist2 >= 0f && (distance < 0f || dist2 <= distance)) {
-                result = i;
-                distance = dist2;
-            }
-        }
-        return result;
     }
 
     public int getObject(int screenX, int screenY) {
