@@ -39,7 +39,7 @@ public class StarObjectModelInstance extends GameObjectModelInstance{
     }
 
 
-    public Vector3 getRotation(){
+    public Vector3 getFace(){
         return rotationVector3;
     }
 

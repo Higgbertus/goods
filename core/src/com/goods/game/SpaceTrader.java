@@ -23,7 +23,6 @@ import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.RenderContext;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
-import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.goods.game.Space.GameObjectModelInstance;
@@ -160,7 +159,7 @@ public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
 //                planetInstance.transform.getTranslation(planetOffset);
 //                planetOffset.sub(starPos);
                 // // TODO: 04.09.2017 problem wennn die starpos nicht ein fixer wert ist sonder mit transform.getTranslation immer die vorrige rotation mit einbezogen wird bringt ein ständiges beschleunigen
-                //instance.transform.setTranslation(starPos).rotate(planetInstance.getRotation(), planetInstance.getOrbitRotationSpeed()).translate(planetOffset);
+                //instance.transform.setTranslation(starPos).rotate(planetInstance.getFace(), planetInstance.getOrbitRotationSpeed()).translate(planetOffset);
                 //instance.transform.setTranslation(starPos).setFromEulerAngles(1,1,1).translate(planetOffset);
 
                 // TODO: 04.09.2017 es sind nur 2 rotationsarten möglich im Star object erzeugt
@@ -168,7 +167,7 @@ public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
                 Vector3 planetOffset = new Vector3();
                 planet.transform.getTranslation(planetOffset);
                 planetOffset.sub(starPos);
-                Vector3 rot = new Vector3(star.getRotation());
+                Vector3 rot = new Vector3(star.getFace());
                 float a = ((PlanetObjectModelInstance) planet).getOrbitRotationSpeed();
                 rot.scl(a);
                 Matrix4 transform = new Matrix4();

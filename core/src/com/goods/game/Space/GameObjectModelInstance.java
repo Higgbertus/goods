@@ -1,11 +1,18 @@
 package com.goods.game.Space;
 
 import com.badlogic.gdx.graphics.Camera;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
+import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
+import com.badlogic.gdx.utils.Array;
 
 import java.util.ArrayList;
 
@@ -14,7 +21,42 @@ import java.util.ArrayList;
  */
 
 public class GameObjectModelInstance extends ModelInstance {
-public com.goods.game.Space.Shapes.Shape shape;
+
+//    private final Vector3 position = new Vector3();
+//    private final Quaternion rotation = new Quaternion();
+//    private final Vector3 scale = new Vector3();
+
+    private Vector3 position = new Vector3();
+    private Quaternion rotation = new Quaternion();
+
+    public void setPosition(Vector3 position) {
+        this.position = position;
+    }
+
+    public void setRotation(Quaternion rotation) {
+        this.rotation = rotation;
+    }
+
+    public void setScale(Vector3 scale) {
+        this.scale = scale;
+    }
+
+    private Vector3 scale = new Vector3();
+
+    public Vector3 getPosition() {
+        return position;
+    }
+
+    public Quaternion getRotation() {
+        return rotation;
+    }
+
+    public Vector3 getScale() {
+        return scale;
+    }
+
+
+    public com.goods.game.Space.Shapes.Shape shape;
 
     private Vector3 origin = new Vector3();
 
@@ -58,11 +100,15 @@ public com.goods.game.Space.Shapes.Shape shape;
 
     private Vector3 parentPosition;
     private ArrayList<GameObjectModelInstance> orbit;
-
+    private ModelInstance[] axes;
+    private ModelBuilder modelBuilder;
+    private Model model;
 
     public GameObjectModelInstance(Model model, float size, ObjectType type) {
         super(model);
         orbit = new ArrayList<GameObjectModelInstance>();
+        axes = new ModelInstance[3];
+        modelBuilder = new ModelBuilder();
         isAlive = true;
 
         this.transform.getScale(origin);
@@ -72,7 +118,51 @@ public com.goods.game.Space.Shapes.Shape shape;
         this.size = size;
         volume = ((4 * MathUtils.PI * Math.pow(size*sizeFactor,3))/3);
         surfaceArea = 4 * MathUtils.PI * Math.pow(size*sizeFactor,2);
+        createAxes();
+    }
 
+    public void updateTransform () {
+        this.transform.set(position, rotation, scale);
+    }
+
+    private void createAxes(){
+        Vector3 pos = new Vector3();
+        this.transform.getTranslation(pos);
+        modelBuilder.begin();
+        MeshPartBuilder builder = modelBuilder.part("line", 1, 3, new Material());
+        builder.setColor(Color.RED);
+        builder.line(pos,new Vector3(20,0,0));
+        model = modelBuilder.end();
+        axes[0] =new ModelInstance(model);
+        modelBuilder.begin();
+        builder = modelBuilder.part("line", 1, 3, new Material());
+        builder.setColor(Color.BLUE);
+        builder.line(pos,new Vector3(0,100,0));
+        model = modelBuilder.end();
+        axes[1] =new ModelInstance(model);
+        modelBuilder.begin();
+        builder = modelBuilder.part("line", 1, 3, new Material());
+        builder.setColor(Color.GREEN);
+        builder.line(pos,new Vector3(0,0,20));
+        model = modelBuilder.end();
+        axes[2] =new ModelInstance(model);
+    }
+
+    public void transformAxes(){
+
+        Vector3 position = new Vector3();
+        Quaternion rotation = new Quaternion();
+        Vector3 scale = new Vector3();
+        this.transform.getTranslation(position);
+        this.transform.getRotation(rotation);
+        this.transform.getScale(scale);
+        for (int i = 0; i < 3 ; i++) {
+            axes[i].transform.set(position, rotation, scale);
+        }
+    }
+
+    public ModelInstance getLine(int i){
+       return axes[i];
     }
 
     public ObjectType getType() {

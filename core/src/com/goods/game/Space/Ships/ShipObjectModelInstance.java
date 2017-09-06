@@ -36,11 +36,12 @@ public class ShipObjectModelInstance extends GameObjectModelInstance{
     }
 
     private void setDirection() {
-        Vector3 dest = new Vector3(destination);
-        position = new Vector3();
-        dest.sub(this.transform.getTranslation(position));
-        dest.nor();
-        this.direction = dest;
+        Vector3 shipPos = new Vector3();
+        this.transform.getTranslation(shipPos);
+        Vector3 norTarget;
+        norTarget = new Vector3(destination.sub(shipPos));
+        norTarget.nor();
+        this.direction = norTarget;
     }
 
     public boolean isMoving() {
@@ -76,104 +77,38 @@ public class ShipObjectModelInstance extends GameObjectModelInstance{
         }
         return newSpeed * speedFactor;
     }
-    private static Vector3 tmpV = new Vector3();
-    private static Quaternion tmpQ = new Quaternion();
 
-    public Vector3 velocity = new Vector3();
-    public Vector3 acceleration = new Vector3();
-    public Quaternion rotation = new Quaternion();
-    private static final float friction = -1.0f;
-    int a = 1;
-    public void rotateToTarget(Vector3 target){
-        //this.transform.rotate(0,1,0,2);
-        //this.transform.setFromEulerAngles(1,0,0);
+    public void rotateToTarget() {
+        //check if ship reached rotation point
 
-        // check if ship reached rotation point
-Vector3 newPos = new Vector3(100,10,50);
-            Quaternion actualRotation = new Quaternion();
-            //this.transform.getRotation(actualRotation,false);
-
-            Vector3 norPos, norTarget, pos;
-        pos = new Vector3();
-            norPos = new Vector3(pos);
-            norTarget = new Vector3(target.sub(newPos));
-
-            this.transform.getTranslation(pos);
-            norPos.nor();
-            norTarget.nor();
-
-        //norPos.dot(norTarget);
+Quaternion q = new Quaternion();
         Matrix4 mtx = new Matrix4();
-        //mtx.translate(100,0,0);
-//mtx.translate(target);
-        mtx.rotate(norTarget,Vector3.Y);
+        mtx.rotate(direction, Vector3.Y);
         mtx.inv();
-        mtx.setTranslation(100,0,0);
-        actualRotation.setFromMatrix(false,mtx);
-       //mtx.translate(100,0,0);
-       // mtx.setTranslation(50,0,0);
+        //mtx.setTranslation(100, 100, 0);
+//        q.setFromMatrix(mtx);
+//        this.updateTransform();
 
 
-
-
-
-        // richtet heck nach direction
-        // TODO: 05.09.2017 richtet es aus...
-       // this.transform.setToRotation(norTarget,Vector3.X);
-//        Matrix4 mtx = new Matrix4();
-//        mtx.rotate(norTarget,Vector3.Y);
-//        mtx.inv();
-        //this.transform.set(mtx);
-        //this.transform.set(actualRotation);
-        this.transform.set(mtx);
-
-
-//        if (pos.hasOppositeDirection(target)){
-//
-//        }else {
-//
-//            this.transform.rotate(pos,pos.dot(target));
-//        }
-        //this.transform.rotate(actualRotation);
-
-        // isInDirection();
-
-
-//        Vector3 direction = new Vector3(target);
-//        direction.nor();
-//        Vector3 planetOffset = new Vector3();
-//        this.transform.getTranslation(planetOffset);
-//        Matrix4 transform = new Matrix4();
-//        Matrix4 tmp = new Matrix4();
-//        transform.setTranslation(planetOffset);
-//        direction.scl(shipRotationSpeed);
-//        tmp.setFromEulerAngles(direction.x*shipRotationSpeed,direction.y*shipRotationSpeed,direction.z*shipRotationSpeed);
-//        transform.mul(tmp);
-//        this.transform.set(transform);
+       this.transform.set(mtx);
     }
-
-    // gute position:
-//    [0.7547174|0.6560507|0.0|700.0]
-//    [-0.6560507|0.7547174|0.0|700.0]
-//    [0.0|0.0|1.0|0.0]
-//    [0.0|0.0|0.0|1.0]
-
 
     private boolean isInDirection(){
-
-
-return false;
-
-
+        return false;
     }
 
-    public void moveShip(){
-        //this.transform.translate(direction.x,direction.y,direction.z).scl(shipTravelSpeed);
+    public void moveShip(Vector3 target){
+        setDestination(target);
+        rotateToTarget();
+       // moveToTarget();
+    }
+
+    private void moveToTarget() {
        // direction.scl(1.1f);
-        rotateToTarget(destination);
         float speed = calcSpeedperDistance();
         Vector3 tmp = new Vector3(direction.x*speed,direction.y*speed,direction.z*speed);
-        this.transform.translate(tmp.x,tmp.y,tmp.z);
+        this.transform.setTranslation(tmp.x,tmp.y,tmp.z);
+
     }
 
     private float getDistanceToDestination(){
