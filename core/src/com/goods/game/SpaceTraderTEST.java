@@ -17,10 +17,13 @@ import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
+import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
+import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
@@ -42,7 +45,7 @@ public class SpaceTraderTEST extends ApplicationAdapter implements InputProcesso
     SpriteBatch spriteBatch;
     BitmapFont font;
     private ArrayList<GameObjectModelInstance> instances;
-
+    private ArrayList<ModelInstance> instances2;
     private SpaceMap spaceMap;
     private int selected =-1;
     String planetInfos = "";
@@ -51,7 +54,7 @@ public class SpaceTraderTEST extends ApplicationAdapter implements InputProcesso
     private final int zoomSpeed = 15;
     private final int rotateAngle = 70;
     private final float translateUnits = 300f;
-    private final Vector3 camPosition= new Vector3(650,650,100),camDirection= new Vector3(800,800,0);
+    private final Vector3 camPosition= new Vector3(0,0,100),camDirection= new Vector3(0,0,0);
     ShipObjectModelInstance shipObjectModelInstance;
 
     public void create () {
@@ -104,17 +107,24 @@ public class SpaceTraderTEST extends ApplicationAdapter implements InputProcesso
         GameObjectModelInstance gameObjectModelInstance;
 
         com.goods.game.Space.Shapes.Shape sphereShape;
-        model = modelBuilder.createSphere(5,5,5,24,24,new Material(ColorAttribute.createDiffuse(Color.YELLOW)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-        gameObjectModelInstance = new Star(model,5);
-        gameObjectModelInstance.transform.setTranslation(new Vector3(1,1,0));
-        gameObjectModelInstance.calculateBoundingBox(bounds);
-        sphereShape = new SphereShape(bounds);
-        gameObjectModelInstance.shape = sphereShape;
-        instances.add(gameObjectModelInstance);
+//        model = modelBuilder.createSphere(5,5,5,24,24,new Material(ColorAttribute.createDiffuse(Color.YELLOW)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
+//        gameObjectModelInstance = new Star(model,5);
+//        gameObjectModelInstance.transform.setTranslation(new Vector3(1,1,0));
+//        gameObjectModelInstance.calculateBoundingBox(bounds);
+//        sphereShape = new SphereShape(bounds);
+//        gameObjectModelInstance.shape = sphereShape;
+//        instances.add(gameObjectModelInstance);
+        instances2 = new ArrayList<ModelInstance>();
+        modelBuilder.begin();
+        MeshPartBuilder builder = modelBuilder.part("line", 1, 3, new Material());
+        builder.setColor(Color.RED);
+        builder.line(0.0f, 0.0f, -5.0f, 0.0f, 0.0f, 5.0f);
+        model = modelBuilder.end();
+        instances2.add(new ModelInstance(model));
 
         model = modelBuilder.createSphere(10,10,10,24,24,new Material(ColorAttribute.createDiffuse(Color.YELLOW)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
         gameObjectModelInstance = new Star(model,5);
-        gameObjectModelInstance.transform.setTranslation(new Vector3(800,800,0));
+        gameObjectModelInstance.transform.setTranslation(new Vector3(10,20,60));
         gameObjectModelInstance.calculateBoundingBox(bounds);
         sphereShape = new SphereShape(bounds);
         gameObjectModelInstance.shape = sphereShape;
@@ -122,7 +132,7 @@ public class SpaceTraderTEST extends ApplicationAdapter implements InputProcesso
 
         model = modelBuilder.createCone(5,5*3,5,24,new Material(ColorAttribute.createDiffuse(Color.GRAY)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
         shipObjectModelInstance = new TranspoterShip(model,5);
-        shipObjectModelInstance.transform.setTranslation(new Vector3(700,700,0));
+        shipObjectModelInstance.transform.setTranslation(new Vector3(50,50,0));
         shipObjectModelInstance.calculateBoundingBox(bounds);
         sphereShape = new SphereShape(bounds);
         shipObjectModelInstance.shape = sphereShape;
@@ -140,7 +150,7 @@ public class SpaceTraderTEST extends ApplicationAdapter implements InputProcesso
         spaceMap.fillMapWithObjects();
         spaceMap.createShip();
     }
-
+float a=1;
     private int visibleCount;
     @Override
     public void render () {
@@ -149,7 +159,7 @@ public class SpaceTraderTEST extends ApplicationAdapter implements InputProcesso
         Gdx.gl30.glClearColor(0,0,0,1);
         Gdx.gl30.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         Gdx.gl30.glClear(GL30.GL_COLOR_BUFFER_BIT|GL30.GL_DEPTH_BUFFER_BIT);
-
+ Vector3 vec = new Vector3(a++,a++,a++);
         // rotate ship in direction to target
 //        Vector3 destination = new Vector3();
 //        Vector3 direction = new Vector3();
@@ -160,15 +170,32 @@ public class SpaceTraderTEST extends ApplicationAdapter implements InputProcesso
 //        direction = shipObjectModelInstance.getDirection();
 //        shipObjectModelInstance.transform.getTranslation(shipPos);
 
+        Vector3 starPos = new Vector3(0,0,0);
+        Vector3 planetOffset = new Vector3();
+        instances.get(0).transform.getTranslation(planetOffset);
+        planetOffset.sub(starPos);
+        Vector3 rot = new Vector3(1,1,1);
+        float a = 1.1f;
+        rot.scl(a);
+        Matrix4 transform = new Matrix4();
+        Matrix4 tmp = new Matrix4();
+        transform.setTranslation(starPos);
+        tmp.setFromEulerAngles(rot.x,rot.y,rot.z);
+        transform.mul(tmp);
+        transform.translate(planetOffset);
+        instances.get(0).transform.set(transform);
+
 if (shipObjectModelInstance.isMoving()){
     if (shipObjectModelInstance.hasReachedDestination()){
         shipObjectModelInstance.setMoving(false);
+        shipObjectModelInstance.rotateToTarget(instances.get(0).transform.getTranslation(new Vector3()));
     }else{
        // shipObjectModelInstance.moveShip();
-        shipObjectModelInstance.rotateToTarget(new Vector3(800,800,0));
+
+        shipObjectModelInstance.rotateToTarget(instances.get(0).transform.getTranslation(new Vector3()));
     }
 }else{
-    shipObjectModelInstance.setDestination(instances.get(0).transform.getTranslation(new Vector3()));
+    shipObjectModelInstance.setDestination(new Vector3(0,0,0));
     shipObjectModelInstance.setMoving(true);
 }
 //        Matrix4 transform = new Matrix4();
@@ -186,6 +213,7 @@ if (shipObjectModelInstance.isMoving()){
                 visibleCount++;
             }
         }
+        modelBatch.render(instances2, environment);
         modelBatch.end();
 
 

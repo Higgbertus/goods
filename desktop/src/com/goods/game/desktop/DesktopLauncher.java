@@ -3,8 +3,6 @@ package com.goods.game.desktop;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.badlogic.gdx.graphics.Color;
-import com.goods.game.Main;
-import com.goods.game.SpaceTrader;
 import com.goods.game.SpaceTraderTEST;
 
 public class DesktopLauncher {

@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
@@ -23,7 +24,7 @@ public class ShipObjectModelInstance extends GameObjectModelInstance{
     private Vector3 destination;
     private boolean isMoving;
     private float shipNormalTravelSpeed, shipRotationSpeed, shipWarpTravelSpeed;
-    private final float speedFactor = 0.01f;
+    private final float speedFactor = 0.01f, rotateFactor = 10f;
     private Vector3 position;
     private final float minWarpDistance = 50f, stopDistance = 10f;
 
@@ -75,16 +76,68 @@ public class ShipObjectModelInstance extends GameObjectModelInstance{
         }
         return newSpeed * speedFactor;
     }
+    private static Vector3 tmpV = new Vector3();
+    private static Quaternion tmpQ = new Quaternion();
 
+    public Vector3 velocity = new Vector3();
+    public Vector3 acceleration = new Vector3();
+    public Quaternion rotation = new Quaternion();
+    private static final float friction = -1.0f;
     int a = 1;
     public void rotateToTarget(Vector3 target){
         //this.transform.rotate(0,1,0,2);
         //this.transform.setFromEulerAngles(1,0,0);
 
         // check if ship reached rotation point
-        isInDirection();
+Vector3 newPos = new Vector3(100,10,50);
+            Quaternion actualRotation = new Quaternion();
+            //this.transform.getRotation(actualRotation,false);
 
-        this.transform.rotate(0,0,1,-a);
+            Vector3 norPos, norTarget, pos;
+        pos = new Vector3();
+            norPos = new Vector3(pos);
+            norTarget = new Vector3(target.sub(newPos));
+
+            this.transform.getTranslation(pos);
+            norPos.nor();
+            norTarget.nor();
+
+        //norPos.dot(norTarget);
+        Matrix4 mtx = new Matrix4();
+        //mtx.translate(100,0,0);
+//mtx.translate(target);
+        mtx.rotate(norTarget,Vector3.Y);
+        mtx.inv();
+        mtx.setTranslation(100,0,0);
+        actualRotation.setFromMatrix(false,mtx);
+       //mtx.translate(100,0,0);
+       // mtx.setTranslation(50,0,0);
+
+
+
+
+
+        // richtet heck nach direction
+        // TODO: 05.09.2017 richtet es aus...
+       // this.transform.setToRotation(norTarget,Vector3.X);
+//        Matrix4 mtx = new Matrix4();
+//        mtx.rotate(norTarget,Vector3.Y);
+//        mtx.inv();
+        //this.transform.set(mtx);
+        //this.transform.set(actualRotation);
+        this.transform.set(mtx);
+
+
+//        if (pos.hasOppositeDirection(target)){
+//
+//        }else {
+//
+//            this.transform.rotate(pos,pos.dot(target));
+//        }
+        //this.transform.rotate(actualRotation);
+
+        // isInDirection();
+
 
 //        Vector3 direction = new Vector3(target);
 //        direction.nor();
@@ -107,16 +160,9 @@ public class ShipObjectModelInstance extends GameObjectModelInstance{
 
 
     private boolean isInDirection(){
-        Quaternion actualRotation = new Quaternion();
-        this.transform.getRotation(actualRotation,true);
-
-        if (true){
-            return true;
-        }else {
-            return false;
-        }
 
 
+return false;
 
 
     }
