@@ -34,9 +34,9 @@ public class ObjectFactory {
     private float ressourceDepositeFactor;
     private GameObjectModelInstance gameObjectModelInstance;
     private BoundingBox bounds = new BoundingBox();
-    protected com.goods.game.Space.Shapes.Shape sphereShape;
-    protected com.goods.game.Space.Shapes.Shape ressourceShape;
-    protected com.goods.game.Space.Shapes.Shape coneShape;
+    protected ObjectShape sphereShape;
+    protected ObjectShape ressourceShape;
+    protected ObjectShape coneShape;
     private Vector3 front, back;
 
 
@@ -54,7 +54,7 @@ public class ObjectFactory {
                 gameObjectModelInstance.transform.setTranslation(position);
                 gameObjectModelInstance.calculateBoundingBox(bounds);
                 sphereShape = new SphereShape(bounds);
-                gameObjectModelInstance.shape = sphereShape;
+                gameObjectModelInstance.setObjectShape(sphereShape);
                 return gameObjectModelInstance;
             }
             case Asteroid:{
@@ -75,7 +75,7 @@ public class ObjectFactory {
                 gameObjectModelInstance.transform.setTranslation(position);
                 gameObjectModelInstance.calculateBoundingBox(bounds);
                 sphereShape = new ConeShape(bounds);
-                gameObjectModelInstance.shape = sphereShape;
+                gameObjectModelInstance.setObjectShape(sphereShape);
                 return gameObjectModelInstance;
             }
         }
@@ -97,7 +97,7 @@ public class ObjectFactory {
                     planetObjectModelInstance.setOrbitRotationSpeed();
                     planetObjectModelInstance.calculateBoundingBox(bounds);
                     sphereShape = new SphereShape(bounds);
-                    planetObjectModelInstance.shape = sphereShape;
+                    planetObjectModelInstance.setObjectShape(sphereShape);
                     return planetObjectModelInstance;
                 }
                 case Desert: {
@@ -108,7 +108,7 @@ public class ObjectFactory {
                     planetObjectModelInstance.setOrbitRotationSpeed();
                     planetObjectModelInstance.calculateBoundingBox(bounds);
                     sphereShape = new SphereShape(bounds);
-                    planetObjectModelInstance.shape = sphereShape;
+                    planetObjectModelInstance.setObjectShape(sphereShape);
                     return planetObjectModelInstance;
                 }
                 case Water: {
@@ -119,7 +119,7 @@ public class ObjectFactory {
                     planetObjectModelInstance.setOrbitRotationSpeed();
                     planetObjectModelInstance.calculateBoundingBox(bounds);
                     sphereShape = new SphereShape(bounds);
-                    planetObjectModelInstance.shape = sphereShape;
+                    planetObjectModelInstance.setObjectShape(sphereShape);
                     return planetObjectModelInstance;
                 }
                 case Terrastic: {
@@ -130,7 +130,7 @@ public class ObjectFactory {
                     planetObjectModelInstance.setOrbitRotationSpeed();
                     planetObjectModelInstance.calculateBoundingBox(bounds);
                     sphereShape = new SphereShape(bounds);
-                    planetObjectModelInstance.shape = sphereShape;
+                    planetObjectModelInstance.setObjectShape(sphereShape);
                     return planetObjectModelInstance;
                 }
                 case Vulcano: {
@@ -141,7 +141,7 @@ public class ObjectFactory {
                     planetObjectModelInstance.setOrbitRotationSpeed();
                     planetObjectModelInstance.calculateBoundingBox(bounds);
                     sphereShape = new SphereShape(bounds);
-                    planetObjectModelInstance.shape = sphereShape;
+                    planetObjectModelInstance.setObjectShape(sphereShape);
                     return planetObjectModelInstance;
                 }
                 case Gas: {
@@ -152,7 +152,7 @@ public class ObjectFactory {
                     planetObjectModelInstance.setOrbitRotationSpeed();
                     planetObjectModelInstance.calculateBoundingBox(bounds);
                     sphereShape = new SphereShape(bounds);
-                    planetObjectModelInstance.shape = sphereShape;
+                    planetObjectModelInstance.setObjectShape(sphereShape);
                     return planetObjectModelInstance;
                 }
                 case Random: {

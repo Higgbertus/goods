@@ -9,6 +9,9 @@ import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.goods.game.Space.GameObjectModelInstance;
 import com.goods.game.Space.ObjectType;
+import com.goods.game.Space.Ressources.Form;
+import com.goods.game.Space.Ressources.RessourceType;
+import com.goods.game.Space.Ressources.Storage;
 
 /**
  * Created by Higgy on 31.08.2017.
@@ -18,15 +21,18 @@ public class ShipObjectModelInstance extends GameObjectModelInstance{
     private static ObjectType oType = ObjectType.Ship;
 
     // Ship Settings
-    private Vector3 direction;
+    private Vector3 direction, direction4Rotation;
+
     private Vector3 destination;
     private boolean isMoving;
     private float shipNormalTravelSpeed, shipRotationSpeed, shipWarpTravelSpeed;
     private float accelerationPower, decelerationPower, rotationPower;
+
     private float mass;
     private final float speedFactor = 0.005f, rotateFactor = 10f;
     private final float minWarpDistance = 50f, stopDistance = 10f;
-    private int elapsed = 1;
+   private Storage[] storages;
+
 
     public Vector3 getDirection() {
         return direction;
@@ -37,6 +43,7 @@ public class ShipObjectModelInstance extends GameObjectModelInstance{
         norTarget = new Vector3(destination.cpy().sub(getPosition()));
         norTarget.nor();
         this.direction = norTarget;
+        this.direction4Rotation = norTarget;
     }
 
     public boolean isMoving() {
@@ -80,38 +87,32 @@ public class ShipObjectModelInstance extends GameObjectModelInstance{
     }
 
     private float calculateRotationSpeed(){
-        float newSpeed;
-        float distanceFactor, accelerationBrakingFactor;
-        if (canWarp()){
-            // distance > minWarpDistance
-            newSpeed = shipWarpTravelSpeed;
-        }else{
-            if (hasReachedDestination()){
-                // distance < stopDistance
-                newSpeed = 0;
-            }else{
-                // distance between 10 and 50
-                // Thrust calculation
-
-                // distance calculation
-                newSpeed = (shipNormalTravelSpeed* (getDistanceToDestination()-stopDistance))/minWarpDistance;
-                newSpeed = newSpeed +10;
-            }
-        }
-        return newSpeed * speedFactor;
+        return 0.1f;
     }
 
     public void rotateToTarget() {
         //check if ship reached rotation point
+
         Quaternion q = new Quaternion();
         Matrix4 mtx = new Matrix4();
-        mtx.rotate(direction, Vector3.Y);
+        mtx.rotate(direction4Rotation, Vector3.Y);
         mtx.inv();
         q.setFromMatrix(mtx);
         setRotation(q);
         this.updateTransform();
+//
+//        Vector3 newDirection = new Vector3();
+//        newDirection
+//        newDirection.scl(calculateRotationSpeed());
+//
+//        Quaternion q = new Quaternion();
+//        Matrix4 mtx = new Matrix4();
+//        mtx.rotate(newDirection, Vector3.Y);
+//        mtx.inv();
+//        q.setFromMatrix(mtx);
+//        setRotation(q);
+//        this.updateTransform();
     }
-
 
     // notwendig?
     public void dockToTarget(Vector3 positionTarget, Vector3 scaleTarget, Quaternion rotationTarget){
@@ -173,6 +174,35 @@ public class ShipObjectModelInstance extends GameObjectModelInstance{
         this.decelerationPower = decelerationPower;
         this.accelerationPower = accelerationPower;
         this.rotationPower = rotationPower;
+        this.storages = new Storage[4];
+    }
+
+    public void setStorageType(int storage, Form form, float storageSize){
+        storages[storage] = new Storage(form,storageSize);
+    }
+
+    public float getAmountOfStorage(int storage){
+        return storages[storage].getCurrentAmount();
+    }
+
+    // TODO: 07.09.2017 load und unload zuerst storages mit wenig resourcen leer machen
+    public float loadRessource(RessourceType type, float amount){
+        for (int i = 0; i < storages.length; i++) {
+            amount = storages[i].load(type,amount);
+        }
+        return amount;
+
+    }
+
+    public float unloadRessource(RessourceType type, float amount){
+        for (int i = 0; i < storages.length; i++) {
+            amount = storages[i].unload(type,amount);
+        }
+        return amount;
+    }
+
+    public int getStoragesAmount(){
+       return storages.length;
     }
 
     @Override

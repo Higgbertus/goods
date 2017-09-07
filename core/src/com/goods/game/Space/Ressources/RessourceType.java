@@ -15,7 +15,6 @@ public enum RessourceType {
 
     private final Color color;
     private final float weight;
-    private enum Form {Liquid, Solid, Loose, Gas}
     private Form form;
 
     RessourceType(Color color, float weight, Form form) {

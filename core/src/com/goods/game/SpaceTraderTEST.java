@@ -28,7 +28,9 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
 import com.goods.game.Space.GameObjectModelInstance;
+import com.goods.game.Space.Planets.IcePlanet;
 import com.goods.game.Space.Shapes.SphereShape;
+import com.goods.game.Space.Shapes.ObjectShape;
 import com.goods.game.Space.Ships.ShipObjectModelInstance;
 import com.goods.game.Space.Ships.TranspoterShip;
 import com.goods.game.Space.SpaceMap;
@@ -40,6 +42,7 @@ public class SpaceTraderTEST extends ApplicationAdapter implements InputProcesso
     public Environment environment;
     public PerspectiveCamera perCam;
     public ModelBatch modelBatch;
+
 
     public CameraInputController camController;
     SpriteBatch spriteBatch;
@@ -58,6 +61,7 @@ public class SpaceTraderTEST extends ApplicationAdapter implements InputProcesso
     private final Vector3 camPosition = new Vector3(0, 0, 100), camDirection = new Vector3(0, 0, 0);
     ShipObjectModelInstance shipObjectModelInstance;
     private ModelInstance[] axes;
+    public float deltaTime;
 
     public void create() {
         Gdx.app.setLogLevel(Application.LOG_DEBUG);
@@ -108,21 +112,21 @@ public class SpaceTraderTEST extends ApplicationAdapter implements InputProcesso
         BoundingBox bounds = new BoundingBox();
         GameObjectModelInstance gameObjectModelInstance;
         axes = new ModelInstance[3];
-        com.goods.game.Space.Shapes.Shape sphereShape;
+        ObjectShape sphereShape;
         model = modelBuilder.createSphere(5, 5, 5, 24, 24, new Material(ColorAttribute.createDiffuse(Color.YELLOW)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
         gameObjectModelInstance = new Star(model, 5);
         gameObjectModelInstance.transform.setTranslation(new Vector3(150, 20, 20));
         gameObjectModelInstance.calculateBoundingBox(bounds);
         sphereShape = new SphereShape(bounds);
-        gameObjectModelInstance.shape = sphereShape;
+        gameObjectModelInstance.setObjectShape(sphereShape);
         instances.add(gameObjectModelInstance);
 
         model = modelBuilder.createSphere(10, 10, 10, 24, 24, new Material(ColorAttribute.createDiffuse(Color.YELLOW)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-        gameObjectModelInstance = new Star(model, 5);
+        gameObjectModelInstance = new IcePlanet(model, 5, 0.7f);
         gameObjectModelInstance.transform.setTranslation(new Vector3(5, 80, 100));
         gameObjectModelInstance.calculateBoundingBox(bounds);
         sphereShape = new SphereShape(bounds);
-        gameObjectModelInstance.shape = sphereShape;
+        gameObjectModelInstance.setObjectShape(sphereShape);
         instances.add(gameObjectModelInstance);
 //
 //        model = modelBuilder.createCone(5, 5 * 3, 5, 24, new Material(ColorAttribute.createDiffuse(Color.GRAY)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
@@ -139,11 +143,14 @@ public class SpaceTraderTEST extends ApplicationAdapter implements InputProcesso
         shipObjectModelInstance.updateTransform();
         shipObjectModelInstance.calculateBoundingBox(bounds);
         sphereShape = new SphereShape(bounds);
-        shipObjectModelInstance.shape = sphereShape;
+        shipObjectModelInstance.setObjectShape(sphereShape);
 
 
-        //createSpaceMap();
-        createAxes();
+        createSpaceMap();
+        if(SpaceTrader.debugMode){
+            createAxes();
+        }
+
     }
 
     private void createSpaceMap() {
@@ -185,13 +192,17 @@ public class SpaceTraderTEST extends ApplicationAdapter implements InputProcesso
 
     @Override
     public void render() {
+        // use in every move rotate translate scale etc.!!!!!
+        // TODO: 07.09.2017 bei allem anwenden
+        deltaTime = Gdx.graphics.getDeltaTime();
+
         createDebugText();
         camController.update();
         Gdx.gl30.glClearColor(0, 0, 0, 1);
         Gdx.gl30.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         Gdx.gl30.glClear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT);
 
-
+        // TODO: 07.09.2017 wie ship alle mit centralen variablen und updatetransfom lösen, alles wie bei ship ins object selber verlagern
         Vector3 starPos = new Vector3(0, 0, 0);
         Vector3 planetOffset = new Vector3();
         instances.get(0).transform.getTranslation(planetOffset);

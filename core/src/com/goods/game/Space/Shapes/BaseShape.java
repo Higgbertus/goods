@@ -7,7 +7,7 @@ import com.badlogic.gdx.math.collision.BoundingBox;
  * Created by Higgy on 04.09.2017.
  */
 
-public abstract class BaseShape implements com.goods.game.Space.Shapes.Shape {
+public abstract class BaseShape implements ObjectShape {
     protected final static Vector3 position = new Vector3();
     public final Vector3 center = new Vector3();
     public final Vector3 dimensions = new Vector3();

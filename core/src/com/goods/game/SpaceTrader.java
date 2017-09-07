@@ -38,6 +38,8 @@ public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
     public PerspectiveCamera perCam;
     public ModelBatch modelBatch;
 
+    public static boolean debugMode = true;
+
     public ArrayList<ModelInstance> instances2;
     public CameraInputController camController;
     SpriteBatch spriteBatch;

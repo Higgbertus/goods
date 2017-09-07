@@ -8,11 +8,11 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
-import com.badlogic.gdx.utils.Array;
+import com.goods.game.Space.Shapes.ObjectShape;
+import com.goods.game.SpaceTrader;
 
 import java.util.ArrayList;
 
@@ -21,50 +21,24 @@ import java.util.ArrayList;
  */
 
 public class GameObjectModelInstance extends ModelInstance {
-
 //   public final Vector3 position = new Vector3();
 //    public final Quaternion rotation = new Quaternion();
 //    public final Vector3 scale = new Vector3();
 
+    /*
+    * 3D fields
+    * */
     private Vector3 position = new Vector3();
     private Quaternion rotation = new Quaternion();
     // muss am Anfang 1 sein...
     private Vector3 scale = new Vector3(1,1,1);
 
-    public void setPosition(Vector3 position) {
-        this.position = position;
-    }
-
-    public void setRotation(Quaternion rotation) {
-        this.rotation = rotation;
-    }
-
-    public void setScale(Vector3 scale) {
-        this.scale = scale;
-    }
-
-
-
-    public Vector3 getPosition() {
-        return position;
-    }
-
-    public Quaternion getRotation() {
-        return rotation;
-    }
-
-    public Vector3 getScale() {
-        return scale;
-    }
-
-
-    public com.goods.game.Space.Shapes.Shape shape;
-
-    private Vector3 origin = new Vector3();
-
-    private Vector3 center1 = new Vector3();
+    /*
+     * Object fields
+     * */
+    private ObjectShape ObjectShape;
     // GameObjectModelInstance Settings
-    private final int sizeFactor = 10;
+    private final int sizeFactor = 20;
     private float size;
     private double surfaceArea;
     protected double volume;
@@ -74,31 +48,7 @@ public class GameObjectModelInstance extends ModelInstance {
     private float selfRotationSpeed = 0.4f;
     private ObjectType type;
 
-    public float getSelfRotationSpeed() {
-        return selfRotationSpeed;
-    }
-
-    public void setSelfRotationSpeed(float selfRotationSpeed) {
-        this.selfRotationSpeed = selfRotationSpeed;
-    }
-
-
-    public boolean hasChildObjects() {
-        return hasChildObjects;
-    }
-
-// Planet Environment
-
-    // Helper
-
-    public Vector3 getParentPosition() {
-        return parentPosition;
-    }
-
-    public void setParentPosition(Vector3 parentPosition) {
-        this.parentPosition = parentPosition;
-    }
-
+private boolean debugMode;
     private Vector3 parentPosition;
     private ArrayList<GameObjectModelInstance> orbit;
     private ModelInstance[] axes;
@@ -108,23 +58,73 @@ public class GameObjectModelInstance extends ModelInstance {
     public GameObjectModelInstance(Model model, float size, ObjectType type) {
         super(model);
         orbit = new ArrayList<GameObjectModelInstance>();
-        axes = new ModelInstance[3];
         modelBuilder = new ModelBuilder();
         isAlive = true;
-
-        this.transform.getScale(origin);
         id++;
         this.type = type;
         this.name = type.name()+id;
         this.size = size;
         volume = ((4 * MathUtils.PI * Math.pow(size*sizeFactor,3))/3);
         surfaceArea = 4 * MathUtils.PI * Math.pow(size*sizeFactor,2);
-        createAxes();
+        if (SpaceTrader.debugMode){
+            axes = new ModelInstance[3];
+            createAxes();
+        }
+    }
+
+    public void setPosition(Vector3 position) {
+        this.position = position;
+    }
+    public void setRotation(Quaternion rotation) {
+        this.rotation = rotation;
+    }
+    public void setScale(Vector3 scale) {
+        this.scale = scale;
+    }
+    public Vector3 getPosition() {
+        return position;
+    }
+    public Quaternion getRotation() {
+        return rotation;
+    }
+    public Vector3 getScale() {
+        return scale;
+    }
+    public float getSelfRotationSpeed() {
+        return selfRotationSpeed;
+    }
+
+
+    public ObjectShape getObjectShape() {
+        return ObjectShape;
+    }
+
+    public void setObjectShape(ObjectShape objectShape) {
+        this.ObjectShape = objectShape;
+    }
+
+    public void setSelfRotationSpeed(float selfRotationSpeed) {
+        this.selfRotationSpeed = selfRotationSpeed;
+    }
+
+    public boolean hasChildObjects() {
+        return hasChildObjects;
+    }
+
+    public Vector3 getParentPosition() {
+        return parentPosition;
+    }
+
+    public void setParentPosition(Vector3 parentPosition) {
+        this.parentPosition = parentPosition;
     }
 
     public void updateTransform () {
         this.transform.set(position, rotation, scale);
-        transformAxes();
+        if (SpaceTrader.debugMode){
+            transformAxes();
+        }
+
     }
 
     private void createAxes(){
@@ -161,7 +161,10 @@ public class GameObjectModelInstance extends ModelInstance {
     }
 
     public ModelInstance getLine(int i){
-       return axes[i];
+        if (SpaceTrader.debugMode){
+            return axes[i];
+        }
+        return null;
     }
 
     public ObjectType getType() {
@@ -169,7 +172,7 @@ public class GameObjectModelInstance extends ModelInstance {
     }
 
     public boolean isVisible(Camera cam) {
-        return shape == null ? false : shape.isVisible(transform, cam);
+        return ObjectShape == null ? false : ObjectShape.isVisible(transform, cam);
     }
 
     /** @return -1 on no intersection, or when there is an intersection: the squared distance between the center of this
@@ -177,10 +180,8 @@ public class GameObjectModelInstance extends ModelInstance {
     /** @return -1 on no intersection, or when there is an intersection: the squared distance between the center of this
      * object and the point on the ray closest to this object when there is intersection. */
     public float intersects(Ray ray) {
-        return shape == null ? -1f : shape.intersects(transform, ray);
+        return ObjectShape == null ? -1f : ObjectShape.intersects(transform, ray);
     }
-
-
 
     public void addObjectToOrbit(GameObjectModelInstance newObject){
         orbit.add(newObject);
@@ -210,6 +211,4 @@ public class GameObjectModelInstance extends ModelInstance {
     public String toString() {
         return name+"; "+"Pos:"+this.transform.getTranslation(new Vector3())+"; Size:"+size;
     }
-
-
 }

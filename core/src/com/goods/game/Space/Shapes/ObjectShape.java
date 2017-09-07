@@ -8,7 +8,7 @@ import com.badlogic.gdx.math.collision.Ray;
  * Created by Higgy on 04.09.2017.
  */
 
-public interface Shape {
+public interface ObjectShape {
     public abstract boolean isVisible(Matrix4 transform, Camera cam);
     /** @return -1 on no intersection, or when there is an intersection: the squared distance between the center of this
      * object and the point on the ray closest to this object when there is intersection. */
