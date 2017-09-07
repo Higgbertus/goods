@@ -49,6 +49,7 @@ public class SpaceTraderTEST extends ApplicationAdapter implements InputProcesso
     private SpaceMap spaceMap;
     private int selected = -1;
     String planetInfos = "";
+    int gameSpeed = 1; // 2,5,10
 
     // Camera Settings
     private final int zoomSpeed = 15;
@@ -115,7 +116,7 @@ public class SpaceTraderTEST extends ApplicationAdapter implements InputProcesso
         sphereShape = new SphereShape(bounds);
         gameObjectModelInstance.shape = sphereShape;
         instances.add(gameObjectModelInstance);
-//
+
         model = modelBuilder.createSphere(10, 10, 10, 24, 24, new Material(ColorAttribute.createDiffuse(Color.YELLOW)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
         gameObjectModelInstance = new Star(model, 5);
         gameObjectModelInstance.transform.setTranslation(new Vector3(5, 80, 100));
@@ -123,15 +124,22 @@ public class SpaceTraderTEST extends ApplicationAdapter implements InputProcesso
         sphereShape = new SphereShape(bounds);
         gameObjectModelInstance.shape = sphereShape;
         instances.add(gameObjectModelInstance);
+//
+//        model = modelBuilder.createCone(5, 5 * 3, 5, 24, new Material(ColorAttribute.createDiffuse(Color.GRAY)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
+//        shipObjectModelInstance = new TranspoterShip(model, 5);
+//        shipObjectModelInstance.transform.setTranslation(new Vector3(50, 50, 0));
+//        shipObjectModelInstance.calculateBoundingBox(bounds);
+//        sphereShape = new SphereShape(bounds);
+//        shipObjectModelInstance.shape = sphereShape;
 
         model = modelBuilder.createCone(5, 5 * 3, 5, 24, new Material(ColorAttribute.createDiffuse(Color.GRAY)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
         shipObjectModelInstance = new TranspoterShip(model, 5);
-        shipObjectModelInstance.transform.setTranslation(new Vector3(50, 50, 0));
+        shipObjectModelInstance.setPosition(new Vector3(50, 50, 0));
+        //shipObjectModelInstance2.setScale(new Vector3(1, 1, 1));
+        shipObjectModelInstance.updateTransform();
         shipObjectModelInstance.calculateBoundingBox(bounds);
         sphereShape = new SphereShape(bounds);
         shipObjectModelInstance.shape = sphereShape;
-//        shipObjectModelInstance.setDestination(new Vector3(300,100,0));
-//        shipObjectModelInstance.setDirection((new Vector3(300,100,0).sub(200,150,0)).nor());
 
 
         //createSpaceMap();
@@ -189,7 +197,7 @@ public class SpaceTraderTEST extends ApplicationAdapter implements InputProcesso
         instances.get(0).transform.getTranslation(planetOffset);
         planetOffset.sub(starPos);
         Vector3 rot = new Vector3(1, 1, 1);
-        float a = 1.1f;
+        float a = 0.01f;
         rot.scl(a);
         Matrix4 transform = new Matrix4();
         Matrix4 tmp = new Matrix4();
@@ -205,7 +213,7 @@ public class SpaceTraderTEST extends ApplicationAdapter implements InputProcesso
         instances.get(1).transform.getTranslation(planetOffset);
         planetOffset.sub(starPos);
         rot = new Vector3(1, 1, 1);
-        a = 1.1f;
+        a = 0.01f;
         rot.scl(a);
         transform = new Matrix4();
         tmp = new Matrix4();
@@ -215,9 +223,9 @@ public class SpaceTraderTEST extends ApplicationAdapter implements InputProcesso
         transform.translate(planetOffset);
         instances.get(1).transform.set(transform);
         instances.get(1).transformAxes();
-
-        shipObjectModelInstance.moveShip(instances.get(0).transform.getTranslation(new Vector3()));
-        shipObjectModelInstance.transformAxes();
+        if (selected >= 0){
+            shipObjectModelInstance.moveShip(instances.get(selected).transform.getTranslation(new Vector3()));
+        }
 
 
         modelBatch.begin(perCam);
@@ -305,13 +313,10 @@ public class SpaceTraderTEST extends ApplicationAdapter implements InputProcesso
     @Override
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
         if (selected >= 0) {
-//            if (selected == getObject(screenX, screenY)){
-//                setSelected(selected);
-//            }
             if (selected == getObject(screenX, screenY)) {
                 setSelected(selected);
             }
-            selected = -1;
+            //selected = -1;
             return true;
         } else {
             planetInfos = "";

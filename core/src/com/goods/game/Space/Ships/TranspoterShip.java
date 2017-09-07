@@ -8,8 +8,9 @@ import com.badlogic.gdx.graphics.g3d.Model;
 
 public class TranspoterShip extends ShipObjectModelInstance {
     private static float shipTravelSpeed =100f, shipRotationSpeed=2f, shipWarpTravelSpeed = 500f;
+    private static float accelerationPower =100f, decelerationPower =20f, rotationPower = 10f;
     public TranspoterShip(Model model, float size) {
-        super(model, size, shipTravelSpeed, shipWarpTravelSpeed, shipRotationSpeed);
+        super(model, size, shipTravelSpeed, shipWarpTravelSpeed, shipRotationSpeed, accelerationPower, decelerationPower, rotationPower);
     }
 
 }

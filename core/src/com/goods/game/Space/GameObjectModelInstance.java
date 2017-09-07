@@ -22,12 +22,14 @@ import java.util.ArrayList;
 
 public class GameObjectModelInstance extends ModelInstance {
 
-//    private final Vector3 position = new Vector3();
-//    private final Quaternion rotation = new Quaternion();
-//    private final Vector3 scale = new Vector3();
+//   public final Vector3 position = new Vector3();
+//    public final Quaternion rotation = new Quaternion();
+//    public final Vector3 scale = new Vector3();
 
     private Vector3 position = new Vector3();
     private Quaternion rotation = new Quaternion();
+    // muss am Anfang 1 sein...
+    private Vector3 scale = new Vector3(1,1,1);
 
     public void setPosition(Vector3 position) {
         this.position = position;
@@ -41,7 +43,7 @@ public class GameObjectModelInstance extends ModelInstance {
         this.scale = scale;
     }
 
-    private Vector3 scale = new Vector3();
+
 
     public Vector3 getPosition() {
         return position;
@@ -64,7 +66,6 @@ public class GameObjectModelInstance extends ModelInstance {
     // GameObjectModelInstance Settings
     private final int sizeFactor = 10;
     private float size;
-    private int mass;
     private double surfaceArea;
     protected double volume;
     private String name;
@@ -123,6 +124,7 @@ public class GameObjectModelInstance extends ModelInstance {
 
     public void updateTransform () {
         this.transform.set(position, rotation, scale);
+        transformAxes();
     }
 
     private void createAxes(){
@@ -149,13 +151,10 @@ public class GameObjectModelInstance extends ModelInstance {
     }
 
     public void transformAxes(){
-
-        Vector3 position = new Vector3();
-        Quaternion rotation = new Quaternion();
-        Vector3 scale = new Vector3();
-        this.transform.getTranslation(position);
-        this.transform.getRotation(rotation);
-        this.transform.getScale(scale);
+// TODO: 06.09.2017 greift noch auf transform zu
+        position = this.getPosition();
+        rotation  =this.getRotation();
+        scale = this.getScale();
         for (int i = 0; i < 3 ; i++) {
             axes[i].transform.set(position, rotation, scale);
         }
