@@ -32,6 +32,7 @@ import com.goods.game.Space.GameObjectModelInstance;
 import com.goods.game.Space.Planets.DesertPlanet;
 import com.goods.game.Space.Planets.GasPlanet;
 import com.goods.game.Space.Planets.IcePlanet;
+import com.goods.game.Space.Planets.PlanetObjectModelInstance;
 import com.goods.game.Space.Planets.TerraPlanet;
 import com.goods.game.Space.Planets.VulcanoPlanet;
 import com.goods.game.Space.Planets.WaterPlanet;
@@ -47,25 +48,9 @@ import java.util.ArrayList;
 public class SpaceTraderTESTX_Y_Z extends ApplicationAdapter implements InputProcessor {
 
 
-
-
     Matrix4 tranfsormNEW = new Matrix4();
     Vector3 origStartPos;
     Vector3 origPlanetPos;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     public Environment environment;
@@ -78,6 +63,7 @@ public class SpaceTraderTESTX_Y_Z extends ApplicationAdapter implements InputPro
     BitmapFont font;
     private ArrayList<GameObjectModelInstance> instances;
     private ArrayList<GameObjectModelInstance> planets, planets1, planets2, planets3;
+    private PlanetObjectModelInstance planetObjectModelInstance;
     private SpaceMap spaceMap;
     private int selected = -1;
     String planetInfos = "";
@@ -92,7 +78,8 @@ public class SpaceTraderTESTX_Y_Z extends ApplicationAdapter implements InputPro
     private ModelInstance[] axes;
     public float deltaTime;
 
-    private boolean rotX, rotY, rotZ, moveX, moveY, moveZ;
+    private boolean rotX, rotY, rotZ, left, right, up, down;
+
 
     public void create() {
         Gdx.app.setLogLevel(Application.LOG_DEBUG);
@@ -156,18 +143,23 @@ public class SpaceTraderTESTX_Y_Z extends ApplicationAdapter implements InputPro
         sphereShape = new SphereShape(bounds);
         gameObjectModelInstance.setObjectShape(sphereShape);
         instances.add(gameObjectModelInstance);
-        origStartPos = new Vector3(10,20,30);
+        origStartPos = new Vector3(10, 20, 30);
 
 
         model = modelBuilder.createSphere(2, 2, 2, 24, 24, new Material(ColorAttribute.createDiffuse(Color.WHITE)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
         gameObjectModelInstance = new IcePlanet(model, 5, 0.7f);
-        gameObjectModelInstance.setPosition(new Vector3(10, 20, 10));
+        gameObjectModelInstance.setPosition(new Vector3(10, 20, 90));
         gameObjectModelInstance.updateTransform();
         gameObjectModelInstance.calculateBoundingBox(bounds);
         sphereShape = new SphereShape(bounds);
         gameObjectModelInstance.setObjectShape(sphereShape);
         planets.add(gameObjectModelInstance);
-        origPlanetPos = new Vector3(10,20,10);
+
+
+        //origPlanetPos = new Vector3(10,20,10);
+
+
+        origPlanetPos = new Vector3(10, 20, 50);
 
 
 //        model = modelBuilder.createSphere(3, 3, 3, 24, 24, new Material(ColorAttribute.createDiffuse(Color.RED)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
@@ -436,8 +428,10 @@ public class SpaceTraderTESTX_Y_Z extends ApplicationAdapter implements InputPro
 
 
     private int visibleCount;
-    private int tar = 0;
+    //private int tar = 0;
     float distance = 0f;
+    //int x = 0, y = 0;
+    //int speed = 5;
 
     @Override
     public void render() {
@@ -454,13 +448,8 @@ public class SpaceTraderTESTX_Y_Z extends ApplicationAdapter implements InputPro
 //
 //        Vector3 orbitPosition = new Vector3(10,0,0);
 //        // TODO: 07.09.2017 wie ship alle mit centralen variablen und updatetransfom lösen, alles wie bei ship ins object selber verlagern fast fertig
-      for (int i = 0; i < planets.size(); i++) {
-            int nextSpace = 1;
-            Vector3 starPos = new Vector3(instances.get(0).getPosition());
-            Vector3 planetPos = new Vector3(planets.get(i).getPosition());
-            Vector3 planetOffset = new Vector3(planetPos);
-            Matrix4 transform = new Matrix4();
-            Matrix4 rotation = new Matrix4();
+        for (int i = 0; i < planets.size(); i++) {
+
 
 //
 //            /*
@@ -476,30 +465,7 @@ public class SpaceTraderTESTX_Y_Z extends ApplicationAdapter implements InputPro
 //            * / Z rot
 //            * */
 
-//            rotation.setFromEulerAngles(50f*deltaTime,0f*deltaTime,0f*deltaTime);
-//
-//            planetOffset.sub(starPos);
-//            transform.setTranslation(starPos);
-//            transform.mul(rotation);
-//            transform.translate(planetOffset);
-//
-//            planets.get(i).setPosition(transform.getTranslation(new Vector3()));
-//            planets.get(i).updateTransform();
-//            planets.get(i).setRotation(transform.getRotation(new Quaternion()));
-//            planets.get(i).updateTransform();
-    }
-
-//            Quaternion rotQ = new Quaternion();
-//            Quaternion newRotQ = new Quaternion();
-//            Vector3 starPos = new Vector3(instances.get(0).getPosition());
-//            Vector3 planetPos = new Vector3(planets.get(0).getPosition());
-//        Vector3 planetOrig = new Vector3(20,30,10);
-//        Vector3 starOrig = new Vector3(10,20,30);
-//            Vector3 planetOffset = new Vector3(planetPos);
-//            Matrix4 transform = new Matrix4();
-//            Matrix4 rotation = new Matrix4();
-//        planetOffset.sub(starPos);
-        // rotX,rotY,rotZ,moveX,moveY,moveZ
+        }
         // geht
 //        if (rotY) {
 //            rotQ = planets.get(0).getRotation();
@@ -556,13 +522,13 @@ public class SpaceTraderTESTX_Y_Z extends ApplicationAdapter implements InputPro
 //            planets.get(0).updateTransform();
 //        }
 
-
         if (rotY) {
             Vector3 starPos = new Vector3(origStartPos);
             Vector3 planetPos = new Vector3(origPlanetPos);
             Vector3 planetOffset = new Vector3(planetPos);
             Matrix4 rotation = new Matrix4();
-            rotation.setFromEulerAngles(50f*deltaTime,0f*deltaTime,0f*deltaTime);
+            float speed = 50f*deltaTime;
+            rotation.setFromEulerAnglesRad(speed,0,0);
             planetOffset.sub(starPos);
             tranfsormNEW.setTranslation(starPos);
             tranfsormNEW.mul(rotation);
@@ -573,7 +539,8 @@ public class SpaceTraderTESTX_Y_Z extends ApplicationAdapter implements InputPro
             Vector3 planetPos = new Vector3(origPlanetPos);
             Vector3 planetOffset = new Vector3(planetPos);
             Matrix4 rotation = new Matrix4();
-            rotation.setFromEulerAngles(0f*deltaTime,50f*deltaTime,0f*deltaTime);
+            float speed = 50f*deltaTime;
+            rotation.setFromEulerAngles(0,speed,0);
             planetOffset.sub(starPos);
             tranfsormNEW.setTranslation(starPos);
             tranfsormNEW.mul(rotation);
@@ -590,16 +557,81 @@ public class SpaceTraderTESTX_Y_Z extends ApplicationAdapter implements InputPro
             tranfsormNEW.mul(rotation);
             tranfsormNEW.translate(planetOffset);
         }
-
-        if (moveX) {
+//
+        if (down) {
             planets.get(0).setPosition(tranfsormNEW.getTranslation(new Vector3()));
-//            planets.get(0).updateTransform();
             planets.get(0).setRotation(tranfsormNEW.getRotation(new Quaternion()));
             planets.get(0).updateTransform();
         }
 
+        if (left) {
+//            x++;
+        }
+        if (right) {
+//            x--;
+        }
+        if (up) {
+            Vector3 starPos = new Vector3(origStartPos);
+            Vector3 planetPos = new Vector3(origPlanetPos);
+            Vector3 planetOffset = new Vector3(planetPos);
+            Matrix4 rotation = new Matrix4();
+            rotation.setFromEulerAngles(270f*deltaTime,0f*deltaTime,0f*deltaTime);
+            planetOffset.sub(starPos);
+            tranfsormNEW.setTranslation(starPos);
+            tranfsormNEW.mul(rotation);
+            tranfsormNEW.translate(planetOffset);
+
+            starPos = new Vector3(origStartPos);
+            planetPos = new Vector3(origPlanetPos);
+            planetOffset = new Vector3(planetPos);
+            rotation = new Matrix4();
+            rotation.setFromEulerAngles(0f*deltaTime,50f*deltaTime,0f*deltaTime);
+            planetOffset.sub(starPos);
+            tranfsormNEW.setTranslation(starPos);
+            tranfsormNEW.mul(rotation);
+            tranfsormNEW.translate(planetOffset);
+        }
+//        if (down) {
+//            y--;
+//        }
 
 
+        // Geht auch alles auf einmal!!!
+        // geht aber nur wenn die Z achse auf den Stern zeigt! Also nur wenn: X=SternX, Y=SternY, Z=Beliebig
+//        if (rotY) {
+//            Vector3 starPos = new Vector3(origStartPos);
+//            Vector3 planetPos = new Vector3(planets.get(0).getOriginalPosition());
+//            Vector3 planetOffset = new Vector3(planetPos);
+//            Matrix4 rotation = new Matrix4();
+//            // über den winkel wird die rotationsachse und geschwindikeit pro sekunde definiert efiniert
+//            // Positive und negative Werte möglich
+//            // Z muss immer 0 sein da Z auf den Stern zeigt und somit nur die Rotation des planeten ändert = Hat negative auswirkungen auf die Orbit rotation!!
+//            rotation.setFromEulerAngles(45, 1 , 0);
+//            planetOffset.sub(starPos);
+//            tranfsormNEW.setTranslation(starPos);
+//            tranfsormNEW.mul(rotation);
+//            tranfsormNEW.translate(planetOffset);
+//            planets.get(0).setPosition(tranfsormNEW.getTranslation(new Vector3()));
+//            planets.get(0).setRotation(tranfsormNEW.getRotation(new Quaternion()));
+//            planets.get(0).updateTransform();
+//        }
+
+//        if (rotY) {
+//
+//
+//            Vector3 starPos = new Vector3(origStartPos);
+//            Vector3 planetPos = new Vector3(origPlanetPos);
+//            Vector3 planetOffset = new Vector3(planetPos);
+//            Matrix4 rotation = new Matrix4();
+//            rotation.setFromEulerAngles(50f*deltaTime,50f*deltaTime,0f*deltaTime);
+//            planetOffset.sub(starPos);
+//            tranfsormNEW.setTranslation(starPos);
+//            tranfsormNEW.mul(rotation);
+//            tranfsormNEW.translate(planetOffset);
+//            planets.get(0).setPosition(tranfsormNEW.getTranslation(new Vector3()));
+//            planets.get(0).setRotation(tranfsormNEW.getRotation(new Quaternion()));
+//            planets.get(0).updateTransform();
+//        }
 
         distance = instances.get(0).getPosition().dst(planets.get(0).getPosition());
 //        for (int i = 0; i < planets1.size(); i++) {
@@ -763,7 +795,19 @@ public class SpaceTraderTESTX_Y_Z extends ApplicationAdapter implements InputPro
                 return true;
             }
             case Input.Keys.DOWN: {
-                moveX = true;
+                down = true;
+                return true;
+            }
+            case Input.Keys.UP: {
+                up = true;
+                return true;
+            }
+            case Input.Keys.LEFT: {
+                left = true;
+                return true;
+            }
+            case Input.Keys.RIGHT: {
+                right = true;
                 return true;
             }
         }
@@ -841,17 +885,22 @@ public class SpaceTraderTESTX_Y_Z extends ApplicationAdapter implements InputPro
                 return true;
             }
             case Input.Keys.UP: {
-
+                up = true;
                 return true;
             }
             case Input.Keys.DOWN: {
-moveX = false;
+                down = false;
                 return true;
             }
             case Input.Keys.LEFT: {
-
+                left = true;
                 return true;
             }
+            case Input.Keys.RIGHT: {
+                right = true;
+                return true;
+            }
+
         }
         return false;
     }

@@ -32,6 +32,7 @@ public class GameObjectModelInstance extends ModelInstance {
     private Quaternion rotation = new Quaternion();
     // muss am Anfang 1 sein...
     private Vector3 scale = new Vector3(1,1,1);
+    private Vector3 originalPosition;
 
     /*
      * Object fields
@@ -72,8 +73,18 @@ private boolean debugMode;
         }
     }
 
+    public Vector3 getOriginalPosition() {
+        return originalPosition;
+    }
+    private void setOriginalPosition(Vector3 originalPosition) {
+        this.originalPosition = originalPosition;
+    }
+
     public void setPosition(Vector3 position) {
         this.position = position;
+        if (originalPosition == null){
+            setOriginalPosition(position);
+        }
     }
     public void setRotation(Quaternion rotation) {
         this.rotation = rotation;
@@ -93,7 +104,6 @@ private boolean debugMode;
     public float getSelfRotationSpeed() {
         return selfRotationSpeed;
     }
-
 
     public ObjectShape getObjectShape() {
         return ObjectShape;
