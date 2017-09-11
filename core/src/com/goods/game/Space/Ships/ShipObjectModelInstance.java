@@ -114,8 +114,11 @@ public class ShipObjectModelInstance extends GameObjectModelInstance{
 //        this.updateTransform();
     }
 
+
+
     // notwendig?
     public void dockToTarget(Vector3 positionTarget, Vector3 scaleTarget, Quaternion rotationTarget){
+
     }
 
     private boolean isInDirection(){

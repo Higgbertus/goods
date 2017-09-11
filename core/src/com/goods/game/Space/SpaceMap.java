@@ -51,7 +51,7 @@ public class SpaceMap {
             starSize = MathUtils.random(maxStarSize-minStarSize)+minStarSize;
             // create Star at Position
             tmp = objectFactory.createGameObject(ObjectType.Star, starSize, createObjectPos((maxStarSize*(maxPlanetperStar+1))));
-
+            Vector3 initRotAngles = createOrbitAngles();
             // Add Star to ArrayList
             starInstances.add((StarObjectModelInstance) tmp);
             gameObjects.add(tmp);
@@ -60,11 +60,13 @@ public class SpaceMap {
             for (int j = 1; j < maxPlanetperStar+1; j++) {
                 // create Planet at position of the star with a factor
                 planetSize = MathUtils.random(maxPlanetSize-minPlanetSize)+minPlanetSize;
-                Vector3 starPos = new Vector3();
-                gameObjects.get(i).transform.getTranslation(starPos);
+                // old Vector3 starPos = new Vector3();
+                // old gameObjects.get(i).transform.getTranslation(starPos);
+                Vector3 starPos = new Vector3(gameObjects.get(i).getPosition());
                 Vector3 position = new Vector3(starPos);
-                position.add((starSize)*j,0,0);
+                position.add(0,0,(starSize)*j);
                 tmp = objectFactory.createGameObject(PlanetType.Random, planetSize, position, starPos);
+                tmp.setInitialRotation(initRotAngles, starPos);
                 starInstances.get(i).addObjectToOrbit(tmp);
                 // Add Planet to Star ArrayList
                 gameObjects.get(i).addObjectToOrbit(tmp);
@@ -72,6 +74,13 @@ public class SpaceMap {
 
         }
         return true;
+    }
+
+    private Vector3 createOrbitAngles(){
+        int x = MathUtils.random(718)-359;
+        int y = MathUtils.random(718)-359;
+        int z = 0; //geht net da z auf stern ausgerichtet //MathUtils.random(360);
+        return new Vector3(x,y,z);
     }
 
     public void createShip(){

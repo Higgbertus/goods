@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
@@ -48,17 +49,16 @@ public class GameObjectModelInstance extends ModelInstance {
     private boolean isAlive, hasChildObjects =false;
     private float selfRotationSpeed = 0.4f;
     private ObjectType type;
-
-private boolean debugMode;
+    Matrix4 tranfsormNEW;
+    private boolean debugMode;
     private Vector3 parentPosition;
     private ArrayList<GameObjectModelInstance> orbit;
-    private ModelInstance[] axes;
+    private ModelInstance[] coordAxes;
     private ModelBuilder modelBuilder;
     private Model model;
-
+    private float orbitRotationSpeed;
     public GameObjectModelInstance(Model model, float size, ObjectType type) {
         super(model);
-        orbit = new ArrayList<GameObjectModelInstance>();
         modelBuilder = new ModelBuilder();
         isAlive = true;
         id++;
@@ -67,24 +67,19 @@ private boolean debugMode;
         this.size = size;
         volume = ((4 * MathUtils.PI * Math.pow(size*sizeFactor,3))/3);
         surfaceArea = 4 * MathUtils.PI * Math.pow(size*sizeFactor,2);
+        tranfsormNEW = new Matrix4();
         if (SpaceTrader.debugMode){
-            axes = new ModelInstance[3];
-            createAxes();
+            coordAxes = new ModelInstance[3];
+            createCoordAxes();
         }
-    }
-
-    public Vector3 getOriginalPosition() {
-        return originalPosition;
-    }
-    private void setOriginalPosition(Vector3 originalPosition) {
-        this.originalPosition = originalPosition;
     }
 
     public void setPosition(Vector3 position) {
         this.position = position;
-        if (originalPosition == null){
-            setOriginalPosition(position);
+        if (this.originalPosition == null){
+            this.originalPosition = position;
         }
+
     }
     public void setRotation(Quaternion rotation) {
         this.rotation = rotation;
@@ -101,9 +96,78 @@ private boolean debugMode;
     public Vector3 getScale() {
         return scale;
     }
+
+    public void setInitialRotation(Vector3 initRotationAngles, Vector3 target){
+        // Dreht das Object auf der Umlaufbahn
+        Vector3 starPos = new Vector3(target);
+        Vector3 planetPos = new Vector3(originalPosition);
+        Vector3 planetOffset = new Vector3(planetPos);
+        Matrix4 rotation = new Matrix4();
+        rotation.setFromEulerAngles(initRotationAngles.y,initRotationAngles.x,initRotationAngles.z);
+        planetOffset.sub(starPos);
+        tranfsormNEW.setTranslation(starPos);
+        tranfsormNEW.mul(rotation);
+        tranfsormNEW.translate(planetOffset);
+        // originalPosition = tranfsormNEW.getTranslation(new Vector3());
+        this.setRotation(tranfsormNEW.getRotation(new Quaternion()));
+        this.setPosition(tranfsormNEW.getTranslation(new Vector3()));
+        this.updateTransform();
+    }
+
+    private Vector3 faceVector = Vector3.Z;
+    public void lookAt(Vector3 target, Vector3 axes){
+        faceVector = axes;
+        Matrix4 tranfsormNEW = new Matrix4();
+        Quaternion q = new Quaternion();
+        Matrix4 mtx = new Matrix4();
+        Vector3 direction4Rotation = new Vector3(target);
+        direction4Rotation.sub(getPosition());
+        direction4Rotation.nor();
+
+        mtx.rotate(direction4Rotation, axes);
+        mtx.inv();
+        q.setFromMatrix(mtx);
+
+        tranfsormNEW.setTranslation(getPosition());
+        tranfsormNEW.mul(mtx);
+        this.setRotation(tranfsormNEW.getRotation(new Quaternion()));
+        this.updateTransform();
+    }
+
+    private float distanceToStar(Vector3 planet){
+        return this.getPosition().dst(planet);
+    }
+
+    private float getOrbitSpeed(Vector3 planet){
+        return 300f / distanceToStar(planet);
+    }
+
+    // TODO: 11.09.2017 wenn star erzeugt wird wird auch gleich die umflaufbahn der planeten festgelegt => nach dem erzeuge eines planeten gleich entsprechend drehen
+    public void rotateOrbitObjects(float deltaTime){
+        for (GameObjectModelInstance orbitObjects:orbit) {
+            orbitObjects.rotateAround(this.getPosition(),new Vector3(1,1,0),deltaTime,getOrbitSpeed(orbitObjects.getPosition()));
+        }
+    }
+
+    public void rotateAround(Vector3 target, Vector3 axes, float deltaTime, float orbitSpeed){
+        Vector3 starPos = new Vector3(target);
+        Vector3 planetPos = new Vector3(originalPosition);
+        Vector3 planetOffset = new Vector3(planetPos);
+        Matrix4 rotation = new Matrix4();
+        rotation.setFromEulerAngles(axes.y*orbitSpeed*deltaTime,axes.x*orbitSpeed*deltaTime,axes.z*orbitSpeed*deltaTime);
+        planetOffset.sub(starPos);
+        tranfsormNEW.setTranslation(starPos);
+        tranfsormNEW.mul(rotation);
+        tranfsormNEW.translate(planetOffset);
+        this.setRotation(tranfsormNEW.getRotation(new Quaternion()));
+        this.setPosition(tranfsormNEW.getTranslation(new Vector3()));
+        this.updateTransform();
+    }
+
     public float getSelfRotationSpeed() {
         return selfRotationSpeed;
     }
+
 
     public ObjectShape getObjectShape() {
         return ObjectShape;
@@ -137,7 +201,7 @@ private boolean debugMode;
 
     }
 
-    private void createAxes(){
+    private void createCoordAxes(){
         Vector3 pos = new Vector3();
         this.transform.getTranslation(pos);
         modelBuilder.begin();
@@ -145,19 +209,19 @@ private boolean debugMode;
         builder.setColor(Color.RED);
         builder.line(pos,new Vector3(20,0,0));
         model = modelBuilder.end();
-        axes[0] =new ModelInstance(model);
+        coordAxes[0] =new ModelInstance(model);
         modelBuilder.begin();
         builder = modelBuilder.part("line", 1, 3, new Material());
         builder.setColor(Color.BLUE);
         builder.line(pos,new Vector3(0,100,0));
         model = modelBuilder.end();
-        axes[1] =new ModelInstance(model);
+        coordAxes[1] =new ModelInstance(model);
         modelBuilder.begin();
         builder = modelBuilder.part("line", 1, 3, new Material());
         builder.setColor(Color.GREEN);
         builder.line(pos,new Vector3(0,0,20));
         model = modelBuilder.end();
-        axes[2] =new ModelInstance(model);
+        coordAxes[2] =new ModelInstance(model);
     }
 
     public void transformAxes(){
@@ -166,13 +230,13 @@ private boolean debugMode;
         rotation  =this.getRotation();
         scale = this.getScale();
         for (int i = 0; i < 3 ; i++) {
-            axes[i].transform.set(position, rotation, scale);
+            coordAxes[i].transform.set(position, rotation, scale);
         }
     }
 
     public ModelInstance getLine(int i){
         if (SpaceTrader.debugMode){
-            return axes[i];
+            return coordAxes[i];
         }
         return null;
     }
@@ -194,11 +258,21 @@ private boolean debugMode;
     }
 
     public void addObjectToOrbit(GameObjectModelInstance newObject){
-        orbit.add(newObject);
-        hasChildObjects = true;
+        if (orbit == null){
+            orbit = new ArrayList<GameObjectModelInstance>();
+            orbit.add(newObject);
+        }else{
+            orbit.add(newObject);
+            hasChildObjects = true;
+        }
     }
     public void removeObjectFromOrbit(GameObjectModelInstance newObject){
-        orbit.remove(newObject);
+        if (orbit == null){
+           return;
+        }else{
+            orbit.remove(newObject);
+        }
+
     }
 
     public ArrayList<GameObjectModelInstance> getOrbitObjects(){

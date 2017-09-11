@@ -20,8 +20,8 @@ public class DesktopLauncher {
         // new LwjglApplication(new Main(), config);
         //new LwjglApplication(new MeshExample(), config);
        // new LwjglApplication(new Main(), config);
-//		new LwjglApplication(new SpaceTrader(), config);
-		new LwjglApplication(new SpaceTraderTESTX_Y_Z(), config);
+		new LwjglApplication(new SpaceTrader(), config);
+//		new LwjglApplication(new SpaceTraderTESTX_Y_Z(), config);
 		// gradlew desktop:dis
 	}
 }

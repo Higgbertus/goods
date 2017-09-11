@@ -13,12 +13,14 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g3d.Environment;
+import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
+import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.RenderContext;
 import com.badlogic.gdx.math.MathUtils;
@@ -38,7 +40,7 @@ public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
     public PerspectiveCamera perCam;
     public ModelBatch modelBatch;
 
-    public static boolean debugMode = true;
+    public static boolean debugMode = false;
 
     public ArrayList<ModelInstance> instances2;
     public CameraInputController camController;
@@ -60,7 +62,8 @@ public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
     private final int rotateAngle = 70;
     private final float translateUnits = 300f;
     private final Vector3 camPosition= new Vector3(500,500,1000),camDirection= new Vector3(500,500,0);
-
+    private ModelInstance[] axes;
+    private float deltaTime;
 
     public void create () {
         Gdx.app.setLogLevel(Application.LOG_DEBUG);
@@ -107,6 +110,10 @@ public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
 
 
         createSpaceMap();
+        if (SpaceTrader.debugMode) {
+            createAxes();
+        }
+
     }
 
     private void createSpaceMap(){
@@ -116,108 +123,46 @@ public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
         spaceMap.createShip();
     }
 
+    private void createAxes() {
+        axes = new ModelInstance[3];
+        Model model;
+        Vector3 pos = new Vector3(0, 0, 0);
+        modelBuilder = new ModelBuilder();
+        modelBuilder.begin();
+        MeshPartBuilder builder = modelBuilder.part("line", 1, 3, new Material());
+        builder.setColor(Color.RED);
+        builder.line(pos, new Vector3(1000, 0, 0));
+        model = modelBuilder.end();
+        axes[0] = new ModelInstance(model);
+        modelBuilder.begin();
+        builder = modelBuilder.part("line", 1, 3, new Material());
+        builder.setColor(Color.BLUE);
+        builder.line(pos, new Vector3(0, 1000, 0));
+        model = modelBuilder.end();
+        axes[1] = new ModelInstance(model);
+        modelBuilder.begin();
+        builder = modelBuilder.part("line", 1, 3, new Material());
+        builder.setColor(Color.GREEN);
+        builder.line(pos, new Vector3(0, 0, 1000));
+        model = modelBuilder.end();
+        axes[2] = new ModelInstance(model);
+    }
+
     private int visibleCount;
     @Override
     public void render () {
+
+        deltaTime = Gdx.graphics.getDeltaTime();
+
         createDebugText();
         camController.update();
         Gdx.gl30.glClearColor(0,0,0,1);
         Gdx.gl30.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         Gdx.gl30.glClear(GL30.GL_COLOR_BUFFER_BIT|GL30.GL_DEPTH_BUFFER_BIT);
 
-        // move
-        // working
-        // instances.get(0).transform.translate(1,0,0);
-
-
-        //working
-        //instances.get(0).transform.rotate(new Vector3(1,1,1), 1);
-
-        // So rotiert der planet in der umlaufbahn vom stern, alle 3 gehen unterschiedlich Stern = 0,0,0
-        //instances.get(1).transform.setTranslation(0,0,0).rotate(new Vector3(0,1,0), 1).translate(10,0,0);
-        //instances.get(1).transform.setTranslation(0,0,0).rotate(new Vector3(0,0,1), 1).translate(0,10,0);
-        //instances.get(1).transform.setTranslation(0,0,0).rotate(new Vector3(1,1,0), 1).translate(0,0,10);
-
-        // So rotiert der planet in der umlaufbahn vom stern, alle 3 gehen unterschiedlich Stern = 10,25,0
-        //instances.get(1).transform.setTranslation(10,25,0).rotate(new Vector3(0,1,0), 1).translate(10,0,0);
-        //instances.get(1).transform.setTranslation(10,25,0).rotate(new Vector3(0,0,1), 1).translate(0,10,0);
-       // instances.get(1).transform.setTranslation(10,25,0).rotate(new Vector3(1,1,0), 1).translate(0,0,10);
-
-        // Rotate planets (self rotation on the own center)
-//        for (GameObjectModelInstance instance :instances) {
-//            instance.transform.rotate(new Vector3(1,1,0), instance.getSelfRotationSpeed());
-//        }
-
-        // TODO: 04.09.2017 planeten drehen durch nach umstellung getpos() zu transform.getTranslation... komischerweise gehen feste werte wie 1f auch nicht wird alles aufsummiert 
-
-        // rotate and translate Planets around Star
-        for (StarObjectModelInstance star :spaceMap.getStars()) {
-
-            for (GameObjectModelInstance planet : spaceMap.getAllPlanetsFromStar(star)) {
-
-//                PlanetObjectModelInstance planetInstance = (PlanetObjectModelInstance) instance;
-//              Vector3 starPos = planet.getParentPosition();
-//                Vector3 planetOffset = new Vector3();
-//                planetInstance.transform.getTranslation(planetOffset);
-//                planetOffset.sub(starPos);
-                // // TODO: 04.09.2017 problem wennn die starpos nicht ein fixer wert ist sonder mit transform.getTranslation immer die vorrige rotation mit einbezogen wird bringt ein ständiges beschleunigen
-                //instance.transform.setTranslation(starPos).rotate(planetInstance.getFace(), planetInstance.getOrbitRotationSpeed()).translate(planetOffset);
-                //instance.transform.setTranslation(starPos).setFromEulerAngles(1,1,1).translate(planetOffset);
-
-                // TODO: 04.09.2017 es sind nur 2 rotationsarten möglich im Star object erzeugt
-                Vector3 starPos = planet.getParentPosition();
-                Vector3 planetOffset = new Vector3();
-                planet.transform.getTranslation(planetOffset);
-                planetOffset.sub(starPos);
-                Vector3 rot = new Vector3(star.getFace());
-                float a = ((PlanetObjectModelInstance) planet).getOrbitRotationSpeed();
-                rot.scl(a);
-                Matrix4 transform = new Matrix4();
-                Matrix4 tmp = new Matrix4();
-                transform.setTranslation(starPos);
-                tmp.setFromEulerAngles(rot.x,rot.y,rot.z);
-                transform.mul(tmp);
-                transform.translate(planetOffset);
-                planet.transform.set(transform);
-            }
-
-
-                ShipObjectModelInstance shipInstance = (ShipObjectModelInstance) spaceMap.getShip(0);
-           if (shipInstance.isMoving()){
-               if (shipInstance.transform.getTranslation(new Vector3()).dst(shipInstance.getDestination())<10){
-                   shipInstance.setMoving(false);
-               }else{
-                   Vector3 baseDirection = shipInstance.getDestination();
-
-                   Vector3 direction = new Vector3();
-                   //Quaternion rotation = your_quaternion;
-                   direction.set(baseDirection);
-                   //direction.mul(rotation);
-
-                   final float speed = 5f; // 5 units per second
-                   Vector3 translation = new Vector3();
-                   translation.set(direction);
-                   translation.scl(speed);
-
-                   shipInstance.transform.trn(translation);
-
-//                   Vector3 dest = shipInstance.getDestination();
-//                   shipInstance.transform.trn(dest.x*2,dest.y*2,dest.z*2);
-               }
-            //   shipInstance.transform.translate(1,1,1);
-           }else{
-                shipInstance.setMoving(true);
-                // get a random star as target
-                GameObjectModelInstance planet;
-                planet = spaceMap.getStar(MathUtils.random(spaceMap.getStars().size()-1));
-                Vector3 target = new Vector3();
-                planet.transform.getTranslation(target);
-               shipInstance.setDestination(target.nor());
-               shipInstance.setMoving(true);
-
-           }
-            // move Ship
-
+       // Move Objects
+        for (final StarObjectModelInstance star : spaceMap.getStars()) {
+            star.rotateOrbitObjects(deltaTime);
         }
 
 
@@ -226,25 +171,23 @@ public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
         for (final StarObjectModelInstance star : spaceMap.getStars()) {
             if (star.isVisible(perCam)) {
                 modelBatch.render(star, environment);
+                for (int i = 0; i < 3 && debugMode; i++) {
+                    modelBatch.render(star.getLine(i), environment);
+                }
                 visibleCount++;
             }
             for (final GameObjectModelInstance planet : spaceMap.getAllPlanetsFromStar(star)) {
                 if (planet.isVisible(perCam)) {
                     modelBatch.render(planet, environment);
+                    for (int i = 0; i < 3 && debugMode; i++) {
+                        modelBatch.render(planet.getLine(i), environment);
+                    }
                     visibleCount++;
                 }
+
             }
         }
-        for (final GameObjectModelInstance ship : spaceMap.getShips()) {
-            if (ship.isVisible(perCam)) {
-                modelBatch.render(ship, environment);
-                visibleCount++;
-            }
-        }
-        //modelBatch.render(instances, environment);
         modelBatch.end();
-
-
         Gdx.gl30.glEnable(GL30.GL_DEPTH_TEST);
         spriteBatch.begin();
         font.draw(spriteBatch,sb.toString(),10,Gdx.graphics.getHeight()-10);

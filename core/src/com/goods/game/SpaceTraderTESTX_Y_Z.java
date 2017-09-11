@@ -23,6 +23,7 @@ import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
@@ -32,7 +33,6 @@ import com.goods.game.Space.GameObjectModelInstance;
 import com.goods.game.Space.Planets.DesertPlanet;
 import com.goods.game.Space.Planets.GasPlanet;
 import com.goods.game.Space.Planets.IcePlanet;
-import com.goods.game.Space.Planets.PlanetObjectModelInstance;
 import com.goods.game.Space.Planets.TerraPlanet;
 import com.goods.game.Space.Planets.VulcanoPlanet;
 import com.goods.game.Space.Planets.WaterPlanet;
@@ -42,15 +42,32 @@ import com.goods.game.Space.Ships.ShipObjectModelInstance;
 import com.goods.game.Space.Ships.TranspoterShip;
 import com.goods.game.Space.SpaceMap;
 import com.goods.game.Space.Stars.Star;
+import com.goods.game.Space.Stars.StarObjectModelInstance;
 
 import java.util.ArrayList;
 
 public class SpaceTraderTESTX_Y_Z extends ApplicationAdapter implements InputProcessor {
 
 
+
+
     Matrix4 tranfsormNEW = new Matrix4();
     Vector3 origStartPos;
     Vector3 origPlanetPos;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     public Environment environment;
@@ -63,7 +80,6 @@ public class SpaceTraderTESTX_Y_Z extends ApplicationAdapter implements InputPro
     BitmapFont font;
     private ArrayList<GameObjectModelInstance> instances;
     private ArrayList<GameObjectModelInstance> planets, planets1, planets2, planets3;
-    private PlanetObjectModelInstance planetObjectModelInstance;
     private SpaceMap spaceMap;
     private int selected = -1;
     String planetInfos = "";
@@ -73,13 +89,12 @@ public class SpaceTraderTESTX_Y_Z extends ApplicationAdapter implements InputPro
     private final int zoomSpeed = 15;
     private final int rotateAngle = 70;
     private final float translateUnits = 300f;
-    private final Vector3 camPosition = new Vector3(0, 0, 100), camDirection = new Vector3(0, 0, 0);
+    private final Vector3 camPosition = new Vector3(500, 500, 1000), camDirection = new Vector3(500, 500, 0);
     ShipObjectModelInstance shipObjectModelInstance;
     private ModelInstance[] axes;
     public float deltaTime;
 
-    private boolean rotX, rotY, rotZ, left, right, up, down;
-
+    private boolean rotX, rotY, rotZ, down, up, right, left;
 
     public void create() {
         Gdx.app.setLogLevel(Application.LOG_DEBUG);
@@ -125,9 +140,6 @@ public class SpaceTraderTESTX_Y_Z extends ApplicationAdapter implements InputPro
 
         instances = new ArrayList<GameObjectModelInstance>();
         planets = new ArrayList<GameObjectModelInstance>();
-        planets1 = new ArrayList<GameObjectModelInstance>();
-        planets2 = new ArrayList<GameObjectModelInstance>();
-        planets3 = new ArrayList<GameObjectModelInstance>();
         modelBatch = new ModelBatch();
         Model model;
         ModelBuilder modelBuilder = new ModelBuilder();
@@ -143,239 +155,21 @@ public class SpaceTraderTESTX_Y_Z extends ApplicationAdapter implements InputPro
         sphereShape = new SphereShape(bounds);
         gameObjectModelInstance.setObjectShape(sphereShape);
         instances.add(gameObjectModelInstance);
-        origStartPos = new Vector3(10, 20, 30);
+        origStartPos = new Vector3(10,20,30);
 
+        origPlanetPos = new Vector3(10, 20, 45);
 
         model = modelBuilder.createSphere(2, 2, 2, 24, 24, new Material(ColorAttribute.createDiffuse(Color.WHITE)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
         gameObjectModelInstance = new IcePlanet(model, 5, 0.7f);
-        gameObjectModelInstance.setPosition(new Vector3(10, 20, 90));
+        gameObjectModelInstance.setPosition(origPlanetPos);
         gameObjectModelInstance.updateTransform();
         gameObjectModelInstance.calculateBoundingBox(bounds);
         sphereShape = new SphereShape(bounds);
         gameObjectModelInstance.setObjectShape(sphereShape);
         planets.add(gameObjectModelInstance);
+        instances.get(0).addObjectToOrbit(gameObjectModelInstance);
 
 
-        //origPlanetPos = new Vector3(10,20,10);
-
-
-        origPlanetPos = new Vector3(10, 20, 50);
-
-
-//        model = modelBuilder.createSphere(3, 3, 3, 24, 24, new Material(ColorAttribute.createDiffuse(Color.RED)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-//        gameObjectModelInstance = new VulcanoPlanet(model, 5, 0.7f);
-//        gameObjectModelInstance.setPosition(new Vector3(5, 5, 0));
-//        gameObjectModelInstance.updateTransform();
-//        gameObjectModelInstance.calculateBoundingBox(bounds);
-//        sphereShape = new SphereShape(bounds);
-//        gameObjectModelInstance.setObjectShape(sphereShape);
-//        planets.add(gameObjectModelInstance);
-
-//        model = modelBuilder.createSphere(4, 4, 4, 24, 24, new Material(ColorAttribute.createDiffuse(Color.BLUE)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-//        gameObjectModelInstance = new WaterPlanet(model, 5, 0.7f);
-//        gameObjectModelInstance.setPosition(new Vector3(5, 5, 0));
-//        gameObjectModelInstance.updateTransform();
-//        gameObjectModelInstance.calculateBoundingBox(bounds);
-//        sphereShape = new SphereShape(bounds);
-//        gameObjectModelInstance.setObjectShape(sphereShape);
-//        planets.add(gameObjectModelInstance);
-
-//        model = modelBuilder.createSphere(5, 5, 5, 24, 24, new Material(ColorAttribute.createDiffuse(Color.BROWN)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-//        gameObjectModelInstance = new GasPlanet(model, 5, 0.7f);
-//        gameObjectModelInstance.setPosition(new Vector3(20, 20, 0));
-//        gameObjectModelInstance.updateTransform();
-//        gameObjectModelInstance.calculateBoundingBox(bounds);
-//        sphereShape = new SphereShape(bounds);
-//        gameObjectModelInstance.setObjectShape(sphereShape);
-//        planets.add(gameObjectModelInstance);
-////
-//        model = modelBuilder.createSphere(7, 7, 7, 24, 24, new Material(ColorAttribute.createDiffuse(Color.ORANGE)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-//        gameObjectModelInstance = new DesertPlanet(model, 5, 0.7f);
-//        gameObjectModelInstance.setPosition(new Vector3(100, 25, 0));
-//        gameObjectModelInstance.updateTransform();
-//        gameObjectModelInstance.calculateBoundingBox(bounds);
-//        sphereShape = new SphereShape(bounds);
-//        gameObjectModelInstance.setObjectShape(sphereShape);
-//        planets.add(gameObjectModelInstance);
-//
-//        model = modelBuilder.createSphere(9, 9, 9, 24, 24, new Material(ColorAttribute.createDiffuse(Color.GREEN)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-//        gameObjectModelInstance = new TerraPlanet(model, 5, 0.7f);
-//        gameObjectModelInstance.setPosition(new Vector3(120, 30, 0));
-//        gameObjectModelInstance.updateTransform();
-//        gameObjectModelInstance.calculateBoundingBox(bounds);
-//        sphereShape = new SphereShape(bounds);
-//        gameObjectModelInstance.setObjectShape(sphereShape);
-//        planets.add(gameObjectModelInstance);
-
-        model = modelBuilder.createSphere(2, 2, 2, 24, 24, new Material(ColorAttribute.createDiffuse(Color.WHITE)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-        gameObjectModelInstance = new IcePlanet(model, 5, 0.7f);
-        gameObjectModelInstance.setPosition(new Vector3(20, 5, 0));
-        gameObjectModelInstance.updateTransform();
-        gameObjectModelInstance.calculateBoundingBox(bounds);
-        sphereShape = new SphereShape(bounds);
-        gameObjectModelInstance.setObjectShape(sphereShape);
-        planets1.add(gameObjectModelInstance);
-
-        model = modelBuilder.createSphere(3, 3, 3, 24, 24, new Material(ColorAttribute.createDiffuse(Color.RED)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-        gameObjectModelInstance = new VulcanoPlanet(model, 5, 0.7f);
-        gameObjectModelInstance.setPosition(new Vector3(40, 5, 0));
-        gameObjectModelInstance.updateTransform();
-        gameObjectModelInstance.calculateBoundingBox(bounds);
-        sphereShape = new SphereShape(bounds);
-        gameObjectModelInstance.setObjectShape(sphereShape);
-        planets1.add(gameObjectModelInstance);
-
-        model = modelBuilder.createSphere(4, 4, 4, 24, 24, new Material(ColorAttribute.createDiffuse(Color.BLUE)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-        gameObjectModelInstance = new WaterPlanet(model, 5, 0.7f);
-        gameObjectModelInstance.setPosition(new Vector3(60, 5, 0));
-        gameObjectModelInstance.updateTransform();
-        gameObjectModelInstance.calculateBoundingBox(bounds);
-        sphereShape = new SphereShape(bounds);
-        gameObjectModelInstance.setObjectShape(sphereShape);
-        planets1.add(gameObjectModelInstance);
-
-        model = modelBuilder.createSphere(5, 5, 5, 24, 24, new Material(ColorAttribute.createDiffuse(Color.BROWN)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-        gameObjectModelInstance = new GasPlanet(model, 5, 0.7f);
-        gameObjectModelInstance.setPosition(new Vector3(80, 5, 0));
-        gameObjectModelInstance.updateTransform();
-        gameObjectModelInstance.calculateBoundingBox(bounds);
-        sphereShape = new SphereShape(bounds);
-        gameObjectModelInstance.setObjectShape(sphereShape);
-        planets1.add(gameObjectModelInstance);
-
-        model = modelBuilder.createSphere(7, 7, 7, 24, 24, new Material(ColorAttribute.createDiffuse(Color.ORANGE)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-        gameObjectModelInstance = new DesertPlanet(model, 5, 0.7f);
-        gameObjectModelInstance.setPosition(new Vector3(100, 5, 0));
-        gameObjectModelInstance.updateTransform();
-        gameObjectModelInstance.calculateBoundingBox(bounds);
-        sphereShape = new SphereShape(bounds);
-        gameObjectModelInstance.setObjectShape(sphereShape);
-        planets1.add(gameObjectModelInstance);
-
-        model = modelBuilder.createSphere(9, 9, 9, 24, 24, new Material(ColorAttribute.createDiffuse(Color.GREEN)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-        gameObjectModelInstance = new TerraPlanet(model, 5, 0.7f);
-        gameObjectModelInstance.setPosition(new Vector3(120, 5, 0));
-        gameObjectModelInstance.updateTransform();
-        gameObjectModelInstance.calculateBoundingBox(bounds);
-        sphereShape = new SphereShape(bounds);
-        gameObjectModelInstance.setObjectShape(sphereShape);
-        planets1.add(gameObjectModelInstance);
-
-        model = modelBuilder.createSphere(2, 2, 2, 24, 24, new Material(ColorAttribute.createDiffuse(Color.WHITE)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-        gameObjectModelInstance = new IcePlanet(model, 5, 0.7f);
-        gameObjectModelInstance.setPosition(new Vector3(20, 5, 0));
-        gameObjectModelInstance.updateTransform();
-        gameObjectModelInstance.calculateBoundingBox(bounds);
-        sphereShape = new SphereShape(bounds);
-        gameObjectModelInstance.setObjectShape(sphereShape);
-        planets2.add(gameObjectModelInstance);
-
-        model = modelBuilder.createSphere(3, 3, 3, 24, 24, new Material(ColorAttribute.createDiffuse(Color.RED)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-        gameObjectModelInstance = new VulcanoPlanet(model, 5, 0.7f);
-        gameObjectModelInstance.setPosition(new Vector3(40, 5, 0));
-        gameObjectModelInstance.updateTransform();
-        gameObjectModelInstance.calculateBoundingBox(bounds);
-        sphereShape = new SphereShape(bounds);
-        gameObjectModelInstance.setObjectShape(sphereShape);
-        planets2.add(gameObjectModelInstance);
-
-        model = modelBuilder.createSphere(4, 4, 4, 24, 24, new Material(ColorAttribute.createDiffuse(Color.BLUE)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-        gameObjectModelInstance = new WaterPlanet(model, 5, 0.7f);
-        gameObjectModelInstance.setPosition(new Vector3(60, 5, 0));
-        gameObjectModelInstance.updateTransform();
-        gameObjectModelInstance.calculateBoundingBox(bounds);
-        sphereShape = new SphereShape(bounds);
-        gameObjectModelInstance.setObjectShape(sphereShape);
-        planets2.add(gameObjectModelInstance);
-
-        model = modelBuilder.createSphere(5, 5, 5, 24, 24, new Material(ColorAttribute.createDiffuse(Color.BROWN)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-        gameObjectModelInstance = new GasPlanet(model, 5, 0.7f);
-        gameObjectModelInstance.setPosition(new Vector3(80, 5, 0));
-        gameObjectModelInstance.updateTransform();
-        gameObjectModelInstance.calculateBoundingBox(bounds);
-        sphereShape = new SphereShape(bounds);
-        gameObjectModelInstance.setObjectShape(sphereShape);
-        planets2.add(gameObjectModelInstance);
-
-        model = modelBuilder.createSphere(7, 7, 7, 24, 24, new Material(ColorAttribute.createDiffuse(Color.ORANGE)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-        gameObjectModelInstance = new DesertPlanet(model, 5, 0.7f);
-        gameObjectModelInstance.setPosition(new Vector3(100, 5, 0));
-        gameObjectModelInstance.updateTransform();
-        gameObjectModelInstance.calculateBoundingBox(bounds);
-        sphereShape = new SphereShape(bounds);
-        gameObjectModelInstance.setObjectShape(sphereShape);
-        planets2.add(gameObjectModelInstance);
-
-        model = modelBuilder.createSphere(9, 9, 9, 24, 24, new Material(ColorAttribute.createDiffuse(Color.GREEN)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-        gameObjectModelInstance = new TerraPlanet(model, 5, 0.7f);
-        gameObjectModelInstance.setPosition(new Vector3(120, 5, 0));
-        gameObjectModelInstance.updateTransform();
-        gameObjectModelInstance.calculateBoundingBox(bounds);
-        sphereShape = new SphereShape(bounds);
-        gameObjectModelInstance.setObjectShape(sphereShape);
-        planets2.add(gameObjectModelInstance);
-
-        model = modelBuilder.createSphere(2, 2, 2, 24, 24, new Material(ColorAttribute.createDiffuse(Color.WHITE)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-        gameObjectModelInstance = new IcePlanet(model, 5, 0.7f);
-        gameObjectModelInstance.setPosition(new Vector3(20, 5, 0));
-        gameObjectModelInstance.updateTransform();
-        gameObjectModelInstance.calculateBoundingBox(bounds);
-        sphereShape = new SphereShape(bounds);
-        gameObjectModelInstance.setObjectShape(sphereShape);
-        planets3.add(gameObjectModelInstance);
-
-        model = modelBuilder.createSphere(3, 3, 3, 24, 24, new Material(ColorAttribute.createDiffuse(Color.RED)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-        gameObjectModelInstance = new VulcanoPlanet(model, 5, 0.7f);
-        gameObjectModelInstance.setPosition(new Vector3(40, 5, 0));
-        gameObjectModelInstance.updateTransform();
-        gameObjectModelInstance.calculateBoundingBox(bounds);
-        sphereShape = new SphereShape(bounds);
-        gameObjectModelInstance.setObjectShape(sphereShape);
-        planets3.add(gameObjectModelInstance);
-
-        model = modelBuilder.createSphere(4, 4, 4, 24, 24, new Material(ColorAttribute.createDiffuse(Color.BLUE)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-        gameObjectModelInstance = new WaterPlanet(model, 5, 0.7f);
-        gameObjectModelInstance.setPosition(new Vector3(60, 5, 0));
-        gameObjectModelInstance.updateTransform();
-        gameObjectModelInstance.calculateBoundingBox(bounds);
-        sphereShape = new SphereShape(bounds);
-        gameObjectModelInstance.setObjectShape(sphereShape);
-        planets3.add(gameObjectModelInstance);
-
-        model = modelBuilder.createSphere(5, 5, 5, 24, 24, new Material(ColorAttribute.createDiffuse(Color.BROWN)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-        gameObjectModelInstance = new GasPlanet(model, 5, 0.7f);
-        gameObjectModelInstance.setPosition(new Vector3(80, 5, 0));
-        gameObjectModelInstance.updateTransform();
-        gameObjectModelInstance.calculateBoundingBox(bounds);
-        sphereShape = new SphereShape(bounds);
-        gameObjectModelInstance.setObjectShape(sphereShape);
-        planets3.add(gameObjectModelInstance);
-
-        model = modelBuilder.createSphere(7, 7, 7, 24, 24, new Material(ColorAttribute.createDiffuse(Color.ORANGE)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-        gameObjectModelInstance = new DesertPlanet(model, 5, 0.7f);
-        gameObjectModelInstance.setPosition(new Vector3(100, 5, 0));
-        gameObjectModelInstance.updateTransform();
-        gameObjectModelInstance.calculateBoundingBox(bounds);
-        sphereShape = new SphereShape(bounds);
-        gameObjectModelInstance.setObjectShape(sphereShape);
-        planets3.add(gameObjectModelInstance);
-
-        model = modelBuilder.createSphere(9, 9, 9, 24, 24, new Material(ColorAttribute.createDiffuse(Color.GREEN)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-        gameObjectModelInstance = new TerraPlanet(model, 5, 0.7f);
-        gameObjectModelInstance.setPosition(new Vector3(120, 5, 0));
-        gameObjectModelInstance.updateTransform();
-        gameObjectModelInstance.calculateBoundingBox(bounds);
-        sphereShape = new SphereShape(bounds);
-        gameObjectModelInstance.setObjectShape(sphereShape);
-        planets3.add(gameObjectModelInstance);
-
-
-//        model = modelBuilder.createCone(5, 5 * 3, 5, 24, new Material(ColorAttribute.createDiffuse(Color.GRAY)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-//        shipObjectModelInstance = new TranspoterShip(model, 5);
-//        shipObjectModelInstance.transform.setTranslation(new Vector3(50, 50, 0));
-//        shipObjectModelInstance.calculateBoundingBox(bounds);
-//        sphereShape = new SphereShape(bounds);
-//        shipObjectModelInstance.shape = sphereShape;
 
         model = modelBuilder.createCone(5, 5 * 3, 5, 24, new Material(ColorAttribute.createDiffuse(Color.GRAY)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
         shipObjectModelInstance = new TranspoterShip(model, 5);
@@ -397,7 +191,7 @@ public class SpaceTraderTESTX_Y_Z extends ApplicationAdapter implements InputPro
         spaceMap = new SpaceMap();
         spaceMap.createMap(1000, 1000, 1000);
         spaceMap.fillMapWithObjects();
-        spaceMap.createShip();
+        //spaceMap.createShip();
     }
 
     private ModelBuilder modelBuilder;
@@ -428,16 +222,13 @@ public class SpaceTraderTESTX_Y_Z extends ApplicationAdapter implements InputPro
 
 
     private int visibleCount;
-    //private int tar = 0;
+    private int tar = 0;
     float distance = 0f;
-    //int x = 0, y = 0;
-    //int speed = 5;
 
     @Override
     public void render() {
         // use in every move rotate translate scale etc.!!!!!
         // TODO: 07.09.2017 bei allem anwenden
-        deltaTime = Gdx.graphics.getDeltaTime();
 
         createDebugText();
         camController.update();
@@ -445,11 +236,18 @@ public class SpaceTraderTESTX_Y_Z extends ApplicationAdapter implements InputPro
         Gdx.gl30.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         Gdx.gl30.glClear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT);
 
+
+        deltaTime = Gdx.graphics.getDeltaTime();
+
+        // Rotiere alle Planeten des Sterns:
+       // instances.get(0).rotate(deltaTime);
+
 //
 //        Vector3 orbitPosition = new Vector3(10,0,0);
 //        // TODO: 07.09.2017 wie ship alle mit centralen variablen und updatetransfom lösen, alles wie bei ship ins object selber verlagern fast fertig
-        for (int i = 0; i < planets.size(); i++) {
+      for (int i = 0; i < planets.size(); i++) {
 
+          // rotiere alle orbit Object
 
 //
 //            /*
@@ -465,7 +263,30 @@ public class SpaceTraderTESTX_Y_Z extends ApplicationAdapter implements InputPro
 //            * / Z rot
 //            * */
 
-        }
+//            rotation.setFromEulerAngles(50f*deltaTime,0f*deltaTime,0f*deltaTime);
+//
+//            planetOffset.sub(starPos);
+//            transform.setTranslation(starPos);
+//            transform.mul(rotation);
+//            transform.translate(planetOffset);
+//
+//            planets.get(i).setPosition(transform.getTranslation(new Vector3()));
+//            planets.get(i).updateTransform();
+//            planets.get(i).setRotation(transform.getRotation(new Quaternion()));
+//            planets.get(i).updateTransform();
+    }
+
+//            Quaternion rotQ = new Quaternion();
+//            Quaternion newRotQ = new Quaternion();
+//            Vector3 starPos = new Vector3(instances.get(0).getPosition());
+//            Vector3 planetPos = new Vector3(planets.get(0).getPosition());
+//        Vector3 planetOrig = new Vector3(20,30,10);
+//        Vector3 starOrig = new Vector3(10,20,30);
+//            Vector3 planetOffset = new Vector3(planetPos);
+//            Matrix4 transform = new Matrix4();
+//            Matrix4 rotation = new Matrix4();
+//        planetOffset.sub(starPos);
+        // rotX,rotY,rotZ,down,moveY,moveZ
         // geht
 //        if (rotY) {
 //            rotQ = planets.get(0).getRotation();
@@ -522,29 +343,32 @@ public class SpaceTraderTESTX_Y_Z extends ApplicationAdapter implements InputPro
 //            planets.get(0).updateTransform();
 //        }
 
+
         if (rotY) {
-            Vector3 starPos = new Vector3(origStartPos);
-            Vector3 planetPos = new Vector3(origPlanetPos);
-            Vector3 planetOffset = new Vector3(planetPos);
-            Matrix4 rotation = new Matrix4();
-            float speed = 50f*deltaTime;
-            rotation.setFromEulerAnglesRad(speed,0,0);
-            planetOffset.sub(starPos);
-            tranfsormNEW.setTranslation(starPos);
-            tranfsormNEW.mul(rotation);
-            tranfsormNEW.translate(planetOffset);
+
+            instances.get(0).rotateOrbitObjects(deltaTime);
+            //      planets.get(0).rotateAround(origStartPos, Vector3.Y ,deltaTime,50f);
+//            Vector3 starPos = new Vector3(origStartPos);
+//            Vector3 planetPos = new Vector3(origPlanetPos);
+//            Vector3 planetOffset = new Vector3(planetPos);
+//            Matrix4 rotation = new Matrix4();
+//            rotation.setFromEulerAngles(50f*deltaTime,0f*deltaTime,0f*deltaTime);
+//            planetOffset.sub(starPos);
+//            tranfsormNEW.setTranslation(starPos);
+//            tranfsormNEW.mul(rotation);
+//            tranfsormNEW.translate(planetOffset);
         }
         if (rotX) {
-            Vector3 starPos = new Vector3(origStartPos);
-            Vector3 planetPos = new Vector3(origPlanetPos);
-            Vector3 planetOffset = new Vector3(planetPos);
-            Matrix4 rotation = new Matrix4();
-            float speed = 50f*deltaTime;
-            rotation.setFromEulerAngles(0,speed,0);
-            planetOffset.sub(starPos);
-            tranfsormNEW.setTranslation(starPos);
-            tranfsormNEW.mul(rotation);
-            tranfsormNEW.translate(planetOffset);
+            planets.get(0).rotateAround(origStartPos, Vector3.X ,deltaTime,50f);
+//            Vector3 starPos = new Vector3(origStartPos);
+//            Vector3 planetPos = new Vector3(origPlanetPos);
+//            Vector3 planetOffset = new Vector3(planetPos);
+//            Matrix4 rotation = new Matrix4();
+//            rotation.setFromEulerAngles(0f*deltaTime,50f*deltaTime,0f*deltaTime);
+//            planetOffset.sub(starPos);
+//            tranfsormNEW.setTranslation(starPos);
+//            tranfsormNEW.mul(rotation);
+//            tranfsormNEW.translate(planetOffset);
         }
         if (rotZ) { // rotiert um eigene achse!?!?!? weil die grüne achse auf den stern zeigt!!!!
             Vector3 starPos = new Vector3(origStartPos);
@@ -557,81 +381,14 @@ public class SpaceTraderTESTX_Y_Z extends ApplicationAdapter implements InputPro
             tranfsormNEW.mul(rotation);
             tranfsormNEW.translate(planetOffset);
         }
-//
+
         if (down) {
             planets.get(0).setPosition(tranfsormNEW.getTranslation(new Vector3()));
             planets.get(0).setRotation(tranfsormNEW.getRotation(new Quaternion()));
             planets.get(0).updateTransform();
         }
 
-        if (left) {
-//            x++;
-        }
-        if (right) {
-//            x--;
-        }
-        if (up) {
-            Vector3 starPos = new Vector3(origStartPos);
-            Vector3 planetPos = new Vector3(origPlanetPos);
-            Vector3 planetOffset = new Vector3(planetPos);
-            Matrix4 rotation = new Matrix4();
-            rotation.setFromEulerAngles(270f*deltaTime,0f*deltaTime,0f*deltaTime);
-            planetOffset.sub(starPos);
-            tranfsormNEW.setTranslation(starPos);
-            tranfsormNEW.mul(rotation);
-            tranfsormNEW.translate(planetOffset);
 
-            starPos = new Vector3(origStartPos);
-            planetPos = new Vector3(origPlanetPos);
-            planetOffset = new Vector3(planetPos);
-            rotation = new Matrix4();
-            rotation.setFromEulerAngles(0f*deltaTime,50f*deltaTime,0f*deltaTime);
-            planetOffset.sub(starPos);
-            tranfsormNEW.setTranslation(starPos);
-            tranfsormNEW.mul(rotation);
-            tranfsormNEW.translate(planetOffset);
-        }
-//        if (down) {
-//            y--;
-//        }
-
-
-        // Geht auch alles auf einmal!!!
-        // geht aber nur wenn die Z achse auf den Stern zeigt! Also nur wenn: X=SternX, Y=SternY, Z=Beliebig
-//        if (rotY) {
-//            Vector3 starPos = new Vector3(origStartPos);
-//            Vector3 planetPos = new Vector3(planets.get(0).getOriginalPosition());
-//            Vector3 planetOffset = new Vector3(planetPos);
-//            Matrix4 rotation = new Matrix4();
-//            // über den winkel wird die rotationsachse und geschwindikeit pro sekunde definiert efiniert
-//            // Positive und negative Werte möglich
-//            // Z muss immer 0 sein da Z auf den Stern zeigt und somit nur die Rotation des planeten ändert = Hat negative auswirkungen auf die Orbit rotation!!
-//            rotation.setFromEulerAngles(45, 1 , 0);
-//            planetOffset.sub(starPos);
-//            tranfsormNEW.setTranslation(starPos);
-//            tranfsormNEW.mul(rotation);
-//            tranfsormNEW.translate(planetOffset);
-//            planets.get(0).setPosition(tranfsormNEW.getTranslation(new Vector3()));
-//            planets.get(0).setRotation(tranfsormNEW.getRotation(new Quaternion()));
-//            planets.get(0).updateTransform();
-//        }
-
-//        if (rotY) {
-//
-//
-//            Vector3 starPos = new Vector3(origStartPos);
-//            Vector3 planetPos = new Vector3(origPlanetPos);
-//            Vector3 planetOffset = new Vector3(planetPos);
-//            Matrix4 rotation = new Matrix4();
-//            rotation.setFromEulerAngles(50f*deltaTime,50f*deltaTime,0f*deltaTime);
-//            planetOffset.sub(starPos);
-//            tranfsormNEW.setTranslation(starPos);
-//            tranfsormNEW.mul(rotation);
-//            tranfsormNEW.translate(planetOffset);
-//            planets.get(0).setPosition(tranfsormNEW.getTranslation(new Vector3()));
-//            planets.get(0).setRotation(tranfsormNEW.getRotation(new Quaternion()));
-//            planets.get(0).updateTransform();
-//        }
 
         distance = instances.get(0).getPosition().dst(planets.get(0).getPosition());
 //        for (int i = 0; i < planets1.size(); i++) {
@@ -686,7 +443,6 @@ public class SpaceTraderTESTX_Y_Z extends ApplicationAdapter implements InputPro
 //            planets3.get(i).updateTransform();
 //        }
 
-
         if (selected >= 0) {
             shipObjectModelInstance.moveShip(instances.get(selected).transform.getTranslation(new Vector3()));
         }
@@ -694,20 +450,64 @@ public class SpaceTraderTESTX_Y_Z extends ApplicationAdapter implements InputPro
 
         modelBatch.begin(perCam);
         visibleCount = 0;
-        modelBatch.render(shipObjectModelInstance, environment);
-        modelBatch.render(instances, environment);
-        for (int i = 0; i < 3; i++) {
-            modelBatch.render(shipObjectModelInstance.getLine(i), environment);
+       // modelBatch.render(shipObjectModelInstance, environment);
+        //   modelBatch.render(instances, environment);
+//        for (final GameObjectModelInstance instance : instances) {
+//            if (instance.isVisible(perCam)) {
+//                modelBatch.render(instance, environment);
+//                visibleCount++;
+//            }
+//            for (int i = 0; i < 3; i++) {
+//                modelBatch.render(instance.getLine(i), environment);
+//            }
+//            for (final GameObjectModelInstance orbit : instance.getOrbitObjects()) {
+//                modelBatch.render(orbit, environment);
+//                for (int i = 0; i < 3; i++) {
+//                    modelBatch.render(orbit.getLine(i), environment);
+//                }
+//            }
+//        }
+        for (final StarObjectModelInstance star : spaceMap.getStars()) {
+            star.rotateOrbitObjects(deltaTime);
         }
-        for (final GameObjectModelInstance instance : planets) {
-            if (instance.isVisible(perCam)) {
-                modelBatch.render(instance, environment);
+        for (final StarObjectModelInstance star : spaceMap.getStars()) {
+            if (star.isVisible(perCam)) {
+                modelBatch.render(star, environment);
+                for (int i = 0; i < 3; i++) {
+                    modelBatch.render(star.getLine(i), environment);
+                }
                 visibleCount++;
             }
-            for (int i = 0; i < 3; i++) {
-                modelBatch.render(instance.getLine(i), environment);
+            for (final GameObjectModelInstance planet : spaceMap.getAllPlanetsFromStar(star)) {
+                if (planet.isVisible(perCam)) {
+                    modelBatch.render(planet, environment);
+                    for (int i = 0; i < 3; i++) {
+                        modelBatch.render(planet.getLine(i), environment);
+                    }
+                    visibleCount++;
+                }
+
             }
         }
+        for (final GameObjectModelInstance ship : spaceMap.getShips()) {
+            if (ship.isVisible(perCam)) {
+                modelBatch.render(ship, environment);
+                visibleCount++;
+            }
+        }
+
+//        for (int i = 0; i < 3; i++) {
+//            modelBatch.render(shipObjectModelInstance.getLine(i), environment);
+//        }
+//        for (final GameObjectModelInstance instance : planets) {
+//            if (instance.isVisible(perCam)) {
+//                modelBatch.render(instance, environment);
+//                visibleCount++;
+//            }
+//            for (int i = 0; i < 3; i++) {
+//                modelBatch.render(instance.getLine(i), environment);
+//            }
+//        }
 //        for (final GameObjectModelInstance instance : planets1) {
 //            if (instance.isVisible(perCam)) {
 //                modelBatch.render(instance, environment);
@@ -799,14 +599,30 @@ public class SpaceTraderTESTX_Y_Z extends ApplicationAdapter implements InputPro
                 return true;
             }
             case Input.Keys.UP: {
+
+
+                Vector3 starPos = new Vector3(origStartPos);
+                Vector3 planetPos = new Vector3(origPlanetPos);
+                Vector3 planetOffset = new Vector3(planetPos);
+                Matrix4 rotation = new Matrix4();
+                rotation.rotate(Vector3.Y, MathUtils.random(359));
+                rotation.rotate(Vector3.X, MathUtils.random(359));
+                planetOffset.sub(starPos);
+                tranfsormNEW.setTranslation(starPos);
+                tranfsormNEW.mul(rotation);
+
+
                 up = true;
                 return true;
             }
             case Input.Keys.LEFT: {
+                tranfsormNEW.translate(new Vector3(50,25,45));
                 left = true;
                 return true;
             }
             case Input.Keys.RIGHT: {
+
+planets.get(0).lookAt(origStartPos, Vector3.Z);
                 right = true;
                 return true;
             }
@@ -820,7 +636,7 @@ public class SpaceTraderTESTX_Y_Z extends ApplicationAdapter implements InputPro
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
 
-// TODO: 04.09.2017 unproject geht nicht da es unendliche positionen im 3d space gibt...  man könnte mit raypicking herusfinden ob man ein ojec klick oder nicht, wenn ja dann rotiere um object ansonsten rotiere um aktuelle cam pos
+// TODO: 04.09.2017 unproject geht nicht da es unendliche positionen im 3d space gibt...  man könnte mit raypicking herusfinden ob man ein oject klick oder nicht, wenn ja dann rotiere um object ansonsten rotiere um aktuelle cam pos
         // start werte für mousedragged
         startX = screenX;
         startY = screenY;
@@ -884,23 +700,22 @@ public class SpaceTraderTESTX_Y_Z extends ApplicationAdapter implements InputPro
                 rotZ = false;
                 return true;
             }
-            case Input.Keys.UP: {
-                up = true;
-                return true;
-            }
             case Input.Keys.DOWN: {
                 down = false;
                 return true;
             }
+            case Input.Keys.UP: {
+                up = false;
+                return true;
+            }
             case Input.Keys.LEFT: {
-                left = true;
+                left = false;
                 return true;
             }
             case Input.Keys.RIGHT: {
-                right = true;
+                right = false;
                 return true;
             }
-
         }
         return false;
     }
@@ -963,6 +778,10 @@ public class SpaceTraderTESTX_Y_Z extends ApplicationAdapter implements InputPro
         return true;
     }
     //endregion
+
+
+
+
 
     // TODO: 04.09.2017 Camera handling: 1. dopperklick > zoom zum object; linksklick auf object rotieren und zoomen am objekt keine bewegen möglich,
 

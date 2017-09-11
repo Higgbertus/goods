@@ -51,7 +51,8 @@ public class ObjectFactory {
 
                 model = modelBuilder.createSphere(size,size,size,24,24,new Material(ColorAttribute.createDiffuse(Color.YELLOW)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
                 gameObjectModelInstance = new Star(model,size);
-                gameObjectModelInstance.transform.setTranslation(position);
+                gameObjectModelInstance.setPosition(position);
+                gameObjectModelInstance.updateTransform();
                 gameObjectModelInstance.calculateBoundingBox(bounds);
                 sphereShape = new SphereShape(bounds);
                 gameObjectModelInstance.setObjectShape(sphereShape);
@@ -72,7 +73,8 @@ public class ObjectFactory {
             case Ship:{
                 model = modelBuilder.createCone(size,size*3,size,24,new Material(ColorAttribute.createDiffuse(Color.GRAY)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
                 gameObjectModelInstance = new TranspoterShip(model,size);
-                gameObjectModelInstance.transform.setTranslation(position);
+                gameObjectModelInstance.setPosition(position);
+                gameObjectModelInstance.updateTransform();
                 gameObjectModelInstance.calculateBoundingBox(bounds);
                 sphereShape = new ConeShape(bounds);
                 gameObjectModelInstance.setObjectShape(sphereShape);
@@ -92,9 +94,8 @@ public class ObjectFactory {
                 case Ice: {
                     model = modelBuilder.createSphere(size, size, size, 24, 24, new Material(ColorAttribute.createDiffuse(pType.getColor())), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
                     planetObjectModelInstance = new IcePlanet(model, size, ressourceDepositeFactor);
-                    planetObjectModelInstance.transform.setTranslation(position);
-                    planetObjectModelInstance.setParentPosition(starPos);
-                    planetObjectModelInstance.setOrbitRotationSpeed();
+                    planetObjectModelInstance.setPosition(position);
+                    planetObjectModelInstance.updateTransform();
                     planetObjectModelInstance.calculateBoundingBox(bounds);
                     sphereShape = new SphereShape(bounds);
                     planetObjectModelInstance.setObjectShape(sphereShape);
@@ -103,9 +104,8 @@ public class ObjectFactory {
                 case Desert: {
                     model = modelBuilder.createSphere(size, size, size, 24, 24, new Material(ColorAttribute.createDiffuse(pType.getColor())), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
                     planetObjectModelInstance = new DesertPlanet(model, size, ressourceDepositeFactor);
-                    planetObjectModelInstance.transform.setTranslation(position);
-                    planetObjectModelInstance.setParentPosition(starPos);
-                    planetObjectModelInstance.setOrbitRotationSpeed();
+                    planetObjectModelInstance.setPosition(position);
+                    planetObjectModelInstance.updateTransform();
                     planetObjectModelInstance.calculateBoundingBox(bounds);
                     sphereShape = new SphereShape(bounds);
                     planetObjectModelInstance.setObjectShape(sphereShape);
@@ -114,9 +114,8 @@ public class ObjectFactory {
                 case Water: {
                     model = modelBuilder.createSphere(size, size, size, 24, 24, new Material(ColorAttribute.createDiffuse(pType.getColor())), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
                     planetObjectModelInstance = new WaterPlanet(model, size, ressourceDepositeFactor);
-                    planetObjectModelInstance.transform.setTranslation(position);
-                    planetObjectModelInstance.setParentPosition(starPos);
-                    planetObjectModelInstance.setOrbitRotationSpeed();
+                    planetObjectModelInstance.setPosition(position);
+                    planetObjectModelInstance.updateTransform();
                     planetObjectModelInstance.calculateBoundingBox(bounds);
                     sphereShape = new SphereShape(bounds);
                     planetObjectModelInstance.setObjectShape(sphereShape);
@@ -125,9 +124,8 @@ public class ObjectFactory {
                 case Terrastic: {
                     model = modelBuilder.createSphere(size, size, size, 24, 24, new Material(ColorAttribute.createDiffuse(pType.getColor())), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
                     planetObjectModelInstance = new TerraPlanet(model, size, ressourceDepositeFactor);
-                    planetObjectModelInstance.transform.setTranslation(position);
-                    planetObjectModelInstance.setParentPosition(starPos);
-                    planetObjectModelInstance.setOrbitRotationSpeed();
+                    planetObjectModelInstance.setPosition(position);
+                    planetObjectModelInstance.updateTransform();
                     planetObjectModelInstance.calculateBoundingBox(bounds);
                     sphereShape = new SphereShape(bounds);
                     planetObjectModelInstance.setObjectShape(sphereShape);
@@ -136,9 +134,8 @@ public class ObjectFactory {
                 case Vulcano: {
                     model = modelBuilder.createSphere(size, size, size, 24, 24, new Material(ColorAttribute.createDiffuse(pType.getColor())), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
                     planetObjectModelInstance = new VulcanoPlanet(model, size, ressourceDepositeFactor);
-                    planetObjectModelInstance.transform.setTranslation(position);
-                    planetObjectModelInstance.setParentPosition(starPos);
-                    planetObjectModelInstance.setOrbitRotationSpeed();
+                    planetObjectModelInstance.setPosition(position);
+                    planetObjectModelInstance.updateTransform();
                     planetObjectModelInstance.calculateBoundingBox(bounds);
                     sphereShape = new SphereShape(bounds);
                     planetObjectModelInstance.setObjectShape(sphereShape);
@@ -147,9 +144,8 @@ public class ObjectFactory {
                 case Gas: {
                     model = modelBuilder.createSphere(size, size, size, 24, 24, new Material(ColorAttribute.createDiffuse(pType.getColor())), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
                     planetObjectModelInstance = new GasPlanet(model, size, ressourceDepositeFactor);
-                    planetObjectModelInstance.transform.setTranslation(position);
-                    planetObjectModelInstance.setParentPosition(starPos);
-                    planetObjectModelInstance.setOrbitRotationSpeed();
+                    planetObjectModelInstance.setPosition(position);
+                    planetObjectModelInstance.updateTransform();
                     planetObjectModelInstance.calculateBoundingBox(bounds);
                     sphereShape = new SphereShape(bounds);
                     planetObjectModelInstance.setObjectShape(sphereShape);
