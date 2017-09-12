@@ -93,6 +93,7 @@ public class SpaceTraderTESTX_Y_Z extends ApplicationAdapter implements InputPro
     ShipObjectModelInstance shipObjectModelInstance;
     private ModelInstance[] axes;
     public float deltaTime;
+    ModelInstance circleInstance;
 
     private boolean rotX, rotY, rotZ, down, up, right, left;
 
@@ -180,11 +181,20 @@ public class SpaceTraderTESTX_Y_Z extends ApplicationAdapter implements InputPro
         shipObjectModelInstance.setObjectShape(sphereShape);
 
 
+        Model circle;
+        Vector3 pos = new Vector3(0, 0, 0);
+        modelBuilder = new ModelBuilder();
+        modelBuilder.begin();
+        MeshPartBuilder builder = modelBuilder.part("line", 1, 3, new Material());
+        builder.setColor(Color.RED);
+        builder.line(pos, new Vector3(1000, 0, 0));
+        model = modelBuilder.end();
+        circleInstance = new ModelInstance(model);
+
         createSpaceMap();
         if (SpaceTrader.debugMode) {
             createAxes();
         }
-
     }
 
     private void createSpaceMap() {
@@ -219,7 +229,6 @@ public class SpaceTraderTESTX_Y_Z extends ApplicationAdapter implements InputPro
         model = modelBuilder.end();
         axes[2] = new ModelInstance(model);
     }
-
 
     private int visibleCount;
     private int tar = 0;
@@ -487,12 +496,6 @@ public class SpaceTraderTESTX_Y_Z extends ApplicationAdapter implements InputPro
                     visibleCount++;
                 }
 
-            }
-        }
-        for (final GameObjectModelInstance ship : spaceMap.getShips()) {
-            if (ship.isVisible(perCam)) {
-                modelBatch.render(ship, environment);
-                visibleCount++;
             }
         }
 

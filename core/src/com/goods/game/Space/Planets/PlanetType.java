@@ -1,4 +1,4 @@
-package com.goods.game.Space;
+package com.goods.game.Space.Planets;
 
 import com.badlogic.gdx.graphics.Color;
 

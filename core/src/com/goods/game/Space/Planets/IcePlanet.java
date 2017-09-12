@@ -1,8 +1,6 @@
 package com.goods.game.Space.Planets;
 
 import com.badlogic.gdx.graphics.g3d.Model;
-import com.goods.game.Space.ObjectType;
-import com.goods.game.Space.PlanetType;
 import com.goods.game.Space.Ressources.RessourceObject;
 import com.goods.game.Space.Ressources.RessourceType;
 

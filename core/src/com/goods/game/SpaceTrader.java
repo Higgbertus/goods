@@ -22,13 +22,10 @@ import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
-import com.badlogic.gdx.graphics.g3d.utils.RenderContext;
-import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
+import com.goods.game.Space.DynamicObjectHandler;
 import com.goods.game.Space.GameObjectModelInstance;
-import com.goods.game.Space.Planets.PlanetObjectModelInstance;
 import com.goods.game.Space.Ships.ShipObjectModelInstance;
 import com.goods.game.Space.SpaceMap;
 import com.goods.game.Space.Stars.StarObjectModelInstance;
@@ -36,34 +33,39 @@ import com.goods.game.Space.Stars.StarObjectModelInstance;
 import java.util.ArrayList;
 
 public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
-    public Environment environment;
-    public PerspectiveCamera perCam;
-    public ModelBatch modelBatch;
 
-    public static boolean debugMode = false;
-
-    public ArrayList<ModelInstance> instances2;
+    // Engine Settings
+    private Environment environment;
+    private PerspectiveCamera perCam;
+    private ModelBatch modelBatch;
     public CameraInputController camController;
     SpriteBatch spriteBatch;
     BitmapFont font;
-    private ArrayList<GameObjectModelInstance> instances;
-
-    public RenderContext renderContext;
-    private Object model;
     private ModelBuilder modelBuilder;
-    private Model planets;
+
+
+
+    // Game Settings
+    public static boolean debugMode = false;
+    private String planetInfos = "";
     private SpaceMap spaceMap;
     private int selected =-1;
-    String planetInfos = "";
-    private ModelInstance modelInstance;
+    private float deltaTime;
+    private ModelInstance[] axes;
+    private DynamicObjectHandler dynamicObjectHandler;
+
+
 
     // Camera Settings
     private final int zoomSpeed = 15;
     private final int rotateAngle = 70;
     private final float translateUnits = 300f;
     private final Vector3 camPosition= new Vector3(500,500,1000),camDirection= new Vector3(500,500,0);
-    private ModelInstance[] axes;
-    private float deltaTime;
+
+
+
+
+
 
     public void create () {
         Gdx.app.setLogLevel(Application.LOG_DEBUG);
@@ -82,13 +84,6 @@ public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
         //environment.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.8f, 10f));
         environment.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, 10f, 5f, 10f));
 
-        // TODO: 04.09.2017 instanzen aufteilen und besser mehrmal modelbatch.render(instances, xx) aufrufen?!?!?
-
-//        instances = new ArrayList<GameObjectModelInstance>();
-//        for (GameObjectModelInstance gameObjects : spaceMap.getAllObjects()) {
-//            instances.add(gameObjects);
-//        }
-
         // Kamera 67Grad, aspect ratio
         perCam = new PerspectiveCamera(67, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         // Kamera Position im raum
@@ -100,27 +95,30 @@ public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
         perCam.far = 10000000f;
         // update camera => camera einstellungen übernehmen
         perCam.update();
-
-
         camController = new CameraInputController(perCam);
-
         Gdx.input.setInputProcessor(new InputMultiplexer(this,camController));
         modelBatch = new ModelBatch();
 
-
-
-        createSpaceMap();
-        if (SpaceTrader.debugMode) {
-            createAxes();
-        }
+        initGame();
 
     }
 
-    private void createSpaceMap(){
+
+    // Initiate Game, create Map, create Start Settings
+    private void initGame(){
+        // Create Map
         spaceMap = new SpaceMap();
         spaceMap.createMap(1000,1000,1000);
         spaceMap.fillMapWithObjects();
-        spaceMap.createShip();
+
+        // Create first Ship
+        dynamicObjectHandler = new DynamicObjectHandler(spaceMap);
+        dynamicObjectHandler.createShip();
+
+        // Debug Options
+        if (SpaceTrader.debugMode) {
+            createAxes();
+        }
     }
 
     private void createAxes() {
@@ -151,23 +149,25 @@ public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
     private int visibleCount;
     @Override
     public void render () {
-
         deltaTime = Gdx.graphics.getDeltaTime();
-
         createDebugText();
         camController.update();
         Gdx.gl30.glClearColor(0,0,0,1);
         Gdx.gl30.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         Gdx.gl30.glClear(GL30.GL_COLOR_BUFFER_BIT|GL30.GL_DEPTH_BUFFER_BIT);
 
-       // Move Objects
+       // Move Static Objects
         for (final StarObjectModelInstance star : spaceMap.getStars()) {
             star.rotateOrbitObjects(deltaTime);
         }
-
+        // Move dynamic objects
+        if (selected >= 0) {
+            dynamicObjectHandler.getShip(0).moveShip(spaceMap.getAllObjects().get(selected).getPosition());
+        }
 
         modelBatch.begin(perCam);
         visibleCount = 0;
+        // Render Static Objecs, Stars, Planets
         for (final StarObjectModelInstance star : spaceMap.getStars()) {
             if (star.isVisible(perCam)) {
                 modelBatch.render(star, environment);
@@ -184,7 +184,16 @@ public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
                     }
                     visibleCount++;
                 }
-
+            }
+        }
+        // Render dynamic Objects like Ships
+        for (final ShipObjectModelInstance ship : dynamicObjectHandler.getShips()) {
+            if (ship.isVisible(perCam)) {
+                modelBatch.render(ship, environment);
+                for (int i = 0; i < 3 && debugMode; i++) {
+                    modelBatch.render(ship.getLine(i), environment);
+                }
+                visibleCount++;
             }
         }
         modelBatch.end();
@@ -198,10 +207,10 @@ public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
     private void createDebugText(){
         sb.delete(0, sb.length());
         sb.append("Debug:");
-        sb.append("\nCam Dir:"  + perCam.direction.toString());
+//        sb.append("\nCam Dir:"  + perCam.direction.toString());
         sb.append("\nVisible:"  + visibleCount);
         sb.append("\nCam Pos:"  + perCam.position.toString());
-        sb.append("\nCam Pos comb:"  + perCam.combined.toString());
+//        sb.append("\nCam Pos comb:"  + perCam.combined.toString());
         sb.append("\nFPS: ").append(Gdx.graphics.getFramesPerSecond());
         sb.append("\nPlanet: ").append(planetInfos);
     }
@@ -211,6 +220,7 @@ public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
         modelBatch.dispose();
         spriteBatch.dispose();
         spaceMap.clear();
+        dynamicObjectHandler.clear();
         //instances.clear();
     }
 
@@ -245,19 +255,15 @@ public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
         }else{
             return false;
         }
-
     }
 
     @Override
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
         if (selected >= 0) {
-//            if (selected == getObject(screenX, screenY)){
-//                setSelected(selected);
-//            }
             if (selected == getObject2(screenX, screenY)){
                 setSelected(selected);
             }
-            selected = -1;
+//            selected = -1;
             return true;
         }else{
             planetInfos = "";
@@ -271,26 +277,13 @@ public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
         }
     }
 
+    // TODO: 12.09.2017 auch dynamicobjects durchlaufen
     public int getObject2(int screenX, int screenY) {
         Ray ray = perCam.getPickRay(screenX, screenY);
         int result = -1;
         float distance = -1;
         for (int i = 0; i < spaceMap.getAllObjects().size(); ++i) {
             final float dist2 = spaceMap.getAllObjects().get(i).intersects(ray);
-            if (dist2 >= 0f && (distance < 0f || dist2 <= distance)) {
-                result = i;
-                distance = dist2;
-            }
-        }
-        return result;
-    }
-
-    public int getObject(int screenX, int screenY) {
-        Ray ray = perCam.getPickRay(screenX, screenY);
-        int result = -1;
-        float distance = -1;
-        for (int i = 0; i < instances.size(); ++i) {
-            final float dist2 = instances.get(i).intersects(ray);
             if (dist2 >= 0f && (distance < 0f || dist2 <= distance)) {
                 result = i;
                 distance = dist2;
@@ -309,17 +302,12 @@ public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
         return false;
     }
 
-
-    private Vector3 tmp = new Vector3(),tmp2 = new Vector3(),tmp3 = new Vector3();
-
-
     Vector3 tmpV1 = new Vector3();
     Vector3 tmpV2 = new Vector3();
     /** The target to rotate around. */
     public Vector3 target = new Vector3();
     @Override
     public boolean touchDragged(int screenX, int screenY, int pointer) {
-
         final float deltaX = (screenX - startX) / Gdx.graphics.getWidth();
         final float deltaY = (startY - screenY) / Gdx.graphics.getHeight();
         startX = screenX;

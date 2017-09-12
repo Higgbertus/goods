@@ -1,13 +1,10 @@
 package com.goods.game.Space.Planets;
 
 import com.badlogic.gdx.graphics.g3d.Model;
-import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector3;
 import com.goods.game.Space.GameObjectModelInstance;
 import com.goods.game.Space.ObjectType;
-import com.goods.game.Space.PlanetType;
 import com.goods.game.Space.Ressources.RessourceObject;
-import com.goods.game.Space.Stars.Star;
 
 import java.util.ArrayList;
 
@@ -44,17 +41,6 @@ public class PlanetObjectModelInstance extends GameObjectModelInstance{
         this.isHostileEnvironment = isHostileEnvironment;
         this.type = type;
     }
-
-
-
-
-
-
-
-
-
-
-
     public ArrayList<RessourceObject> getRessources() {
         return ressources;
     }

@@ -272,7 +272,6 @@ public class GameObjectModelInstance extends ModelInstance {
         }else{
             orbit.remove(newObject);
         }
-
     }
 
     public ArrayList<GameObjectModelInstance> getOrbitObjects(){

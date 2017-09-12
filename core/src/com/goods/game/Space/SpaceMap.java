@@ -1,8 +1,6 @@
 package com.goods.game.Space;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector3;
-import com.goods.game.Space.Planets.PlanetObjectModelInstance;
-import com.goods.game.Space.Ships.ShipObjectModelInstance;
 import com.goods.game.Space.Stars.StarObjectModelInstance;
 
 import java.util.ArrayList;
@@ -13,6 +11,7 @@ import java.util.Random;
  */
 
 public class SpaceMap {
+
 
     //Map Settings
     private int mapHeight, mapWidth, mapDepth;
@@ -25,15 +24,14 @@ public class SpaceMap {
     // Helper
     private ObjectFactory objectFactory;
     public ArrayList<StarObjectModelInstance> starInstances;
-    public ArrayList<GameObjectModelInstance> shipInstances;
     public ArrayList<GameObjectModelInstance> gameObjects;
     private Random random;
+    private int maxDistance = 0;
 
     public SpaceMap( ) {
         objectFactory = new ObjectFactory();
         gameObjects = new ArrayList<GameObjectModelInstance>();
         starInstances = new ArrayList<StarObjectModelInstance>();
-        shipInstances = new ArrayList<GameObjectModelInstance>();
         random = new Random();
     }
 
@@ -65,7 +63,7 @@ public class SpaceMap {
                 Vector3 starPos = new Vector3(gameObjects.get(i).getPosition());
                 Vector3 position = new Vector3(starPos);
                 position.add(0,0,(starSize)*j);
-                tmp = objectFactory.createGameObject(PlanetType.Random, planetSize, position, starPos);
+                tmp = objectFactory.createGameObject(com.goods.game.Space.Planets.PlanetType.Random, planetSize, position, starPos);
                 tmp.setInitialRotation(initRotAngles, starPos);
                 starInstances.get(i).addObjectToOrbit(tmp);
                 // Add Planet to Star ArrayList
@@ -83,14 +81,12 @@ public class SpaceMap {
         return new Vector3(x,y,z);
     }
 
-    public void createShip(){
-        tmp = objectFactory.createGameObject(ObjectType.Ship, shipSize, createObjectPos(10));
-        shipInstances.add(tmp);
-        // Add Star to ArrayList
-        gameObjects.add(tmp);
-    }
+    private Vector3 createObjectPos(int minDistance){
+        // save maxDisstance for further usage
+        if (maxDistance <minDistance){
+            maxDistance = minDistance;
+        }
 
-    private Vector3 createObjectPos(float minDistance){
         float x,y,z;
         do {
             x = random.nextInt(mapWidth - borderSpace - borderSpace) + borderSpace;
@@ -109,7 +105,7 @@ public class SpaceMap {
     private boolean isOccupied(float x, float y, float z, float minDistance){
         Vector3 pos1 = new Vector3();
         for (GameObjectModelInstance object :gameObjects) {
-            object.transform.getTranslation(pos1);
+            pos1 = object.getPosition();
             if (pos1.dst(x,y,z)< minDistance)
                 return true;
         }
@@ -122,15 +118,6 @@ public class SpaceMap {
 
     public StarObjectModelInstance getStar(int i) {
         return starInstances.get(i);
-    }
-
-    public ArrayList<GameObjectModelInstance> getShips() {
-        return shipInstances;
-    }
-
-    public GameObjectModelInstance getShip(int i) {
-
-        return shipInstances.get(i);
     }
 
     public  ArrayList<GameObjectModelInstance> getAllPlanetsFromStar(int i){
@@ -153,12 +140,27 @@ public class SpaceMap {
         return allGameObjects;
     }
 
-    public void createStars() {
+    public int getMaxDistance() {
+        return maxDistance;
+    }
+    public int getMapHeight() {
+        return mapHeight;
+    }
+
+    public int getMapWidth() {
+        return mapWidth;
+    }
+
+    public int getMapDepth() {
+        return mapDepth;
+    }
+
+    public int getBorderSpace() {
+        return borderSpace;
     }
 
     public void clear(){
         starInstances.clear();
-        shipInstances.clear();
         gameObjects.clear();
     }
 }

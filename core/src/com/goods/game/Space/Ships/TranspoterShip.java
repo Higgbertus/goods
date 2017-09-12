@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.g3d.Model;
 public class TranspoterShip extends ShipObjectModelInstance {
     private static float shipTravelSpeed =100f, shipRotationSpeed=2f, shipWarpTravelSpeed = 500f;
     private static float accelerationPower =100f, decelerationPower =20f, rotationPower = 10f;
+    private static ShipType sType = ShipType.TransporterMultiRole;
     public TranspoterShip(Model model, float size) {
         super(model, size, shipTravelSpeed, shipWarpTravelSpeed, shipRotationSpeed, accelerationPower, decelerationPower, rotationPower);
     }

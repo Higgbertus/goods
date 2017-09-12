@@ -8,14 +8,10 @@ import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
-import com.goods.game.Space.Planets.DesertPlanet;
-import com.goods.game.Space.Planets.GasPlanet;
-import com.goods.game.Space.Planets.IcePlanet;
-import com.goods.game.Space.Planets.PlanetObjectModelInstance;
+import com.goods.game.Space.Planets.*;
 import com.goods.game.Space.Shapes.*;
-import com.goods.game.Space.Planets.TerraPlanet;
-import com.goods.game.Space.Planets.VulcanoPlanet;
-import com.goods.game.Space.Planets.WaterPlanet;
+import com.goods.game.Space.Ships.ShipObjectModelInstance;
+import com.goods.game.Space.Ships.ShipType;
 import com.goods.game.Space.Ships.TranspoterShip;
 import com.goods.game.Space.Stars.Star;
 
@@ -85,7 +81,47 @@ public class ObjectFactory {
         return null;
     }
 
-    public PlanetObjectModelInstance createGameObject (PlanetType pType, float size, Vector3 position, Vector3 starPos){
+    public ShipObjectModelInstance createShipObject (ShipType sType, float size, Vector3 position){
+        ShipObjectModelInstance shipObjectModelInstance;
+        switch (sType){
+            case Fighter:{
+
+            }
+            case TransporterGas:{
+
+            }
+            case TransporterLooseFreight:{
+
+            }
+            case TransporterMultiRole:{
+                model = modelBuilder.createCone(size,size*3,size,24,new Material(ColorAttribute.createDiffuse(Color.GRAY)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
+                shipObjectModelInstance = new TranspoterShip(model,size);
+                shipObjectModelInstance.setPosition(position);
+                shipObjectModelInstance.updateTransform();
+                shipObjectModelInstance.calculateBoundingBox(bounds);
+                sphereShape = new ConeShape(bounds);
+                shipObjectModelInstance.setObjectShape(sphereShape);
+                return shipObjectModelInstance;
+            }
+            case Battleship:{
+
+            }
+            case Frigate:{
+                model = modelBuilder.createCone(size,size*3,size,24,new Material(ColorAttribute.createDiffuse(Color.GRAY)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
+                shipObjectModelInstance = new TranspoterShip(model,size);
+                shipObjectModelInstance.setPosition(position);
+                shipObjectModelInstance.updateTransform();
+                shipObjectModelInstance.calculateBoundingBox(bounds);
+                sphereShape = new ConeShape(bounds);
+                shipObjectModelInstance.setObjectShape(sphereShape);
+                return shipObjectModelInstance;
+            }
+        }
+
+        return null;
+    }
+
+    public PlanetObjectModelInstance createGameObject (com.goods.game.Space.Planets.PlanetType pType, float size, Vector3 position, Vector3 starPos){
         PlanetObjectModelInstance planetObjectModelInstance;
         ressourceDepositeFactor = random.nextFloat();
 
@@ -152,7 +188,7 @@ public class ObjectFactory {
                     return planetObjectModelInstance;
                 }
                 case Random: {
-                    PlanetType[] pTypeArray = PlanetType.values();
+                    com.goods.game.Space.Planets.PlanetType[] pTypeArray = com.goods.game.Space.Planets.PlanetType.values();
                     pType = pTypeArray[random.nextInt(pTypeArray.length - 1)];
                 }
             }

@@ -379,7 +379,6 @@ public class SpaceTraderTEST extends ApplicationAdapter implements InputProcesso
         spaceMap = new SpaceMap();
         spaceMap.createMap(1000, 1000, 1000);
         spaceMap.fillMapWithObjects();
-        spaceMap.createShip();
     }
 
     private ModelBuilder modelBuilder;
