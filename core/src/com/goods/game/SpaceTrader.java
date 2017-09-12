@@ -26,11 +26,11 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.goods.game.Space.DynamicObjectHandler;
 import com.goods.game.Space.GameObjectModelInstance;
+import com.goods.game.Space.ObjectType;
 import com.goods.game.Space.Ships.ShipObjectModelInstance;
 import com.goods.game.Space.SpaceMap;
 import com.goods.game.Space.Stars.StarObjectModelInstance;
-
-import java.util.ArrayList;
+import com.sun.jmx.snmp.Timestamp;
 
 public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
 
@@ -197,6 +197,14 @@ public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
             }
         }
         modelBatch.end();
+
+        // Camera Adjustments
+        if(stickToPosition && selected > 0){
+            stickCameraToPosition();
+        }
+
+
+
         Gdx.gl30.glEnable(GL30.GL_DEPTH_TEST);
         spriteBatch.begin();
         font.draw(spriteBatch,sb.toString(),10,Gdx.graphics.getHeight()-10);
@@ -228,6 +236,7 @@ public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
     // wegen dem Inputmultiplexer wird über die bool gesagt das das event richtig verarbeitet wurde oder nicht
     @Override
     public boolean keyDown(int keycode) {
+        stickToPosition = false;
         if (keycode == Input.Keys.SPACE){
             perCam.position.set(500, 500, 500);
             perCam.lookAt(500,500,0);
@@ -240,21 +249,52 @@ public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
     }
     private float startX,startY;
 
+
+    private Timestamp timestamp, timestampNEW;
+    private boolean doubleClicked = false;
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
 
 // TODO: 04.09.2017 unproject geht nicht da es unendliche positionen im 3d space gibt...  man könnte mit raypicking herusfinden ob man ein ojec klick oder nicht, wenn ja dann rotiere um object ansonsten rotiere um aktuelle cam pos
-         // start werte für mousedragged
-        startX = screenX;
-        startY = screenY;
-        // Is a Object clicked?
-        //selected = getObject(screenX, screenY);
-        selected = getObject2(screenX, screenY);
-        if (selected >= 0){
-            return true;
+
+        // Double Click: Zoomt zu Objekt und fixiert position, mann kann um Objekt herum rotieren und hin bzw weg zoomen. erst wenn mousedragged benützt verliert man die fixierung
+        if(button == Input.Buttons.LEFT){
+            if(timestampNEW == null){
+                timestampNEW = new Timestamp(System.currentTimeMillis());
+            }else{
+                timestamp = new Timestamp(System.currentTimeMillis());
+                long timeSpan = timestamp.getDateTime()-timestampNEW.getDateTime();
+                if (timeSpan < 500){
+                    doubleClicked = true;
+                }
+                timestampNEW = null;
+            }
+            // start werte für mousedragged
+            startX = screenX;
+            startY = screenY;
+            // Is a Object clicked?
+            //selected = getObject(screenX, screenY);
+            selected = getObject2(screenX, screenY);
+            if (selected >= 0){
+                return true;
+            }else{
+                return false;
+            }
         }else{
+            if (button == Input.Buttons.RIGHT){
+                stickToPosition = false;
+                return true;
+            }
             return false;
         }
+
+
+
+
+
+
+
+
     }
 
     @Override
@@ -271,10 +311,40 @@ public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
         }
     }
 
+    boolean stickToPosition = false;
     public void setSelected (int value) {
         if (selected == value) {
             planetInfos = spaceMap.getAllObjects().get(value).toString();
         }
+        if (selected == value && doubleClicked) {
+            doubleClicked = false;
+            // TODO: 12.09.2017 so drehen das der blick auf die umlaufbahn fällt damit man alles sieht und keine Planeten sich überlapppen
+            if (spaceMap.getAllObjects().get(value).getType() == ObjectType.Star){
+                Vector3 pos = spaceMap.getAllObjects().get(value).getPosition();
+                perCam.position.set(pos.x,pos.y,pos.z+200);
+                perCam.lookAt(pos.x,pos.y,0);
+                perCam.near = 1f;
+                perCam.far = 1000f;
+                perCam.update();
+            }else {
+                stickToPosition = true;
+                Vector3 pos = spaceMap.getAllObjects().get(value).getPosition();
+                perCam.position.set(pos.x,pos.y,pos.z+50);
+                perCam.lookAt(pos.x,pos.y,0);
+                perCam.near = 1f;
+                perCam.far = 1000f;
+                perCam.update();
+            }
+        }
+    }
+
+    private void stickCameraToPosition(){
+        Vector3 pos = spaceMap.getAllObjects().get(selected).getPosition();
+        perCam.position.set(pos.x,pos.y,pos.z+50);
+        perCam.lookAt(pos.x,pos.y,0);
+        perCam.near = 1f;
+        perCam.far = 1000f;
+        perCam.update();
     }
 
     // TODO: 12.09.2017 auch dynamicobjects durchlaufen
@@ -308,6 +378,7 @@ public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
     public Vector3 target = new Vector3();
     @Override
     public boolean touchDragged(int screenX, int screenY, int pointer) {
+        stickToPosition = false;
         final float deltaX = (screenX - startX) / Gdx.graphics.getWidth();
         final float deltaY = (startY - screenY) / Gdx.graphics.getHeight();
         startX = screenX;
@@ -346,8 +417,6 @@ public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
        return true;
     }
     //endregion
-
-    // TODO: 04.09.2017 Camera handling: 1. dopperklick > zoom zum object; linksklick auf object rotieren und zoomen am objekt keine bewegen möglich,
 
 
 }

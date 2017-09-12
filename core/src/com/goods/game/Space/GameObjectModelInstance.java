@@ -139,7 +139,7 @@ public class GameObjectModelInstance extends ModelInstance {
     }
 
     private float getOrbitSpeed(Vector3 planet){
-        return 300f / distanceToStar(planet);
+        return 100f / distanceToStar(planet);
     }
 
     // TODO: 11.09.2017 wenn star erzeugt wird wird auch gleich die umflaufbahn der planeten festgelegt => nach dem erzeuge eines planeten gleich entsprechend drehen
