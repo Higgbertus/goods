@@ -22,6 +22,7 @@ import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.goods.game.Space.DynamicObjectHandler;
@@ -32,7 +33,7 @@ import com.goods.game.Space.SpaceMap;
 import com.goods.game.Space.Stars.StarObjectModelInstance;
 import com.sun.jmx.snmp.Timestamp;
 
-public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
+public class SpaceTraderCam extends ApplicationAdapter implements InputProcessor {
 
     // Engine Settings
     private Environment environment;
@@ -47,10 +48,7 @@ public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
 
     // Game Settings
     public static boolean debugMode = false;
-    private String planetInfos = "";
     private SpaceMap spaceMap;
-    private int selected =-1;
-    private float deltaTime;
     private ModelInstance[] axes;
     private DynamicObjectHandler dynamicObjectHandler;
 
@@ -64,6 +62,14 @@ public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
 
 
 
+
+    // Game Helper
+    private String planetInfos = "";
+    private int selected =-1;
+    private int selectedShip =-1;
+    private ObjectType selectedType;
+    private float deltaTime;
+    private GameObjectModelInstance activeTarget;
 
 
 
@@ -116,7 +122,7 @@ public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
         dynamicObjectHandler.createShip();
 
         // Debug Options
-        if (SpaceTrader.debugMode) {
+        if (SpaceTraderCam.debugMode) {
             createAxes();
         }
     }
@@ -161,8 +167,8 @@ public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
             star.rotateOrbitObjects(deltaTime);
         }
         // Move dynamic objects
-        if (selected >= 0) {
-            dynamicObjectHandler.getShip(0).moveShip(spaceMap.getAllObjects().get(selected));
+        if (selected >= 0 && activeTarget != null && selectedShip >= 0) {
+            dynamicObjectHandler.getShip(selectedShip).moveShip(spaceMap.getAllObjects().get(selected));
         }
 
         modelBatch.begin(perCam);
@@ -204,18 +210,44 @@ public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
         spriteBatch.begin();
         font.draw(spriteBatch,sb.toString(),10,Gdx.graphics.getHeight()-10);
         spriteBatch.end();
+
+        // moveCam
+        if (doubleClicked && selected >0){
+            moveCamToPosition();
+        }
     }
+
+
+
+
+
+
+    private void moveCamToPosition(){
+        Vector3 target  = activeTarget.getPosition();
+        // rotate to target
+        perCam.lookAt(target);
+        perCam.update();
+
+        // move to Target with speed...
+        if (target.dst(perCam.position) > 100){
+            perCam.translate(tmpV1.set(perCam.direction).scl(400*deltaTime));
+        }else{
+            setDoubleClicked(false);
+        }
+    }
+
+
+
+
+
+
 
     StringBuilder sb = new StringBuilder();
     private void createDebugText(){
         sb.delete(0, sb.length());
         sb.append("Debug:");
-//        sb.append("\nCam Dir:"  + perCam.direction.toString());
-        sb.append("\nVisible:"  + visibleCount);
-        sb.append("\nCam Pos:"  + perCam.position.toString());
-//        sb.append("\nCam Pos comb:"  + perCam.combined.toString());
-        sb.append("\nFPS: ").append(Gdx.graphics.getFramesPerSecond());
-        sb.append("\nPlanet: ").append(planetInfos);
+        sb.append("\nDC:" + doubleClicked);
+        sb.append("\nShip:" + selectedShip);
     }
 
     @Override
@@ -244,24 +276,26 @@ public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
     private float startX,startY;
 
 
-    private Timestamp timestamp, timestampNEW;
+    private Timestamp timestampLast, timestampNEW;
+    private Vector2 lastPos, newPos;
     private boolean doubleClicked = false;
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
 
-// TODO: 04.09.2017 unproject geht nicht da es unendliche positionen im 3d space gibt...  man könnte mit raypicking herusfinden ob man ein ojec klick oder nicht, wenn ja dann rotiere um object ansonsten rotiere um aktuelle cam pos
-
+        // TODO: 13.09.2017 doppelklick geht noch nicht richtig
         // Double Click: Zoomt zu Objekt und fixiert position, mann kann um Objekt herum rotieren und hin bzw weg zoomen. erst wenn mousedragged benützt verliert man die fixierung
-
-            if(timestampNEW == null){
-                timestampNEW = new Timestamp(System.currentTimeMillis());
+        setDoubleClicked(false);
+            if(timestampLast == null){
+                timestampLast = new Timestamp(System.currentTimeMillis());
+                lastPos = new Vector2(screenX,screenY);
             }else{
-                timestamp = new Timestamp(System.currentTimeMillis());
-                long timeSpan = timestamp.getDateTime()-timestampNEW.getDateTime();
-                if (timeSpan < 500){
-                    doubleClicked = true;
+                timestampNEW = new Timestamp(System.currentTimeMillis());
+                newPos = new Vector2(screenX,screenY);
+                long timeSpan = timestampNEW.getDateTime()-timestampLast.getDateTime();
+                if (timeSpan < 500 && lastPos.dst(newPos)< 50){
+                    setDoubleClicked(true);
                 }
-                timestampNEW = null;
+                timestampLast = null;
             }
             // start werte für mousedragged
             startX = screenX;
@@ -275,14 +309,10 @@ public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
                 return false;
             }
 
+    }
 
-
-
-
-
-
-
-
+    private void setDoubleClicked(boolean isDoubleClicked){
+        doubleClicked = isDoubleClicked;
     }
 
     @Override
@@ -301,7 +331,23 @@ public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
 
     public void setSelected (int value) {
         if (selected == value) {
-            planetInfos = spaceMap.getAllObjects().get(value).toString();
+            switch(selectedType){
+                case Ship: {
+                    selectedShip = value;
+                    activeTarget = null;
+                    break;
+                }
+                case Planet: {
+                    activeTarget = spaceMap.getAllObjects().get(value);
+                    planetInfos = activeTarget.toString();
+                    break;
+                }
+                case Star: {
+                    activeTarget = spaceMap.getAllObjects().get(value);
+                    planetInfos = activeTarget.toString();
+                    break;
+                }
+            }
         }
     }
 
@@ -316,6 +362,15 @@ public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
             if (dist2 >= 0f && (distance < 0f || dist2 <= distance)) {
                 result = i;
                 distance = dist2;
+                selectedType = spaceMap.getAllObjects().get(i).getType();
+            }
+        }
+        for (int i = 0; i < dynamicObjectHandler.getShips().size(); ++i) {
+            final float dist2 = dynamicObjectHandler.getShip(i).intersects(ray);
+            if (dist2 >= 0f && (distance < 0f || dist2 <= distance)) {
+                result = i;
+                distance = dist2;
+                selectedType = dynamicObjectHandler.getShip(i).getType();
             }
         }
         return result;

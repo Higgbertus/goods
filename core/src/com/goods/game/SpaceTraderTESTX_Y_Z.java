@@ -453,7 +453,7 @@ public class SpaceTraderTESTX_Y_Z extends ApplicationAdapter implements InputPro
 //        }
 
         if (selected >= 0) {
-            shipObjectModelInstance.moveShip(instances.get(selected).transform.getTranslation(new Vector3()));
+            shipObjectModelInstance.moveShip(instances.get(selected));
         }
 
 
@@ -487,16 +487,16 @@ public class SpaceTraderTESTX_Y_Z extends ApplicationAdapter implements InputPro
                 }
                 visibleCount++;
             }
-            for (final GameObjectModelInstance planet : spaceMap.getAllPlanetsFromStar(star)) {
-                if (planet.isVisible(perCam)) {
-                    modelBatch.render(planet, environment);
-                    for (int i = 0; i < 3; i++) {
-                        modelBatch.render(planet.getLine(i), environment);
-                    }
-                    visibleCount++;
-                }
-
-            }
+//            for (final GameObjectModelInstance planet : spaceMap.getAllPlanetsFromStar(star)) {
+//                if (planet.isVisible(perCam)) {
+//                    modelBatch.render(planet, environment);
+//                    for (int i = 0; i < 3; i++) {
+//                        modelBatch.render(planet.getLine(i), environment);
+//                    }
+//                    visibleCount++;
+//                }
+//
+//            }
         }
 
 //        for (int i = 0; i < 3; i++) {

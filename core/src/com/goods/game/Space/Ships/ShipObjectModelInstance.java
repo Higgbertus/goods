@@ -23,14 +23,14 @@ public class ShipObjectModelInstance extends GameObjectModelInstance{
     // Ship Settings
     private Vector3 direction, direction4Rotation;
 
-    private Vector3 destination;
+    private GameObjectModelInstance destination;
     private boolean isMoving;
     private float shipNormalTravelSpeed, shipRotationSpeed, shipWarpTravelSpeed;
     private float accelerationPower, decelerationPower, rotationPower;
 
     private float mass;
     private final float speedFactor = 0.005f, rotateFactor = 10f;
-    private final float minWarpDistance = 50f, stopDistance = 10f;
+    private float minWarpDistance = 50f;
    private Storage[] storages;
 
 
@@ -40,7 +40,7 @@ public class ShipObjectModelInstance extends GameObjectModelInstance{
 
     private void setDirection() {
         Vector3 norTarget;
-        norTarget = new Vector3(destination.cpy().sub(getPosition()));
+        norTarget = new Vector3(destination.getPosition().cpy().sub(getPosition()));
         norTarget.nor();
         this.direction = norTarget;
         this.direction4Rotation = norTarget;
@@ -54,11 +54,11 @@ public class ShipObjectModelInstance extends GameObjectModelInstance{
         isMoving = moving;
     }
 
-    public Vector3 getDestination() {
+    public GameObjectModelInstance getDestination() {
         return destination;
     }
 
-    public void setDestination(Vector3 destination) {
+    public void setDestination(GameObjectModelInstance destination) {
         this.destination = destination;
         setDirection();
     }
@@ -71,7 +71,7 @@ public class ShipObjectModelInstance extends GameObjectModelInstance{
             newSpeed = shipWarpTravelSpeed;
         }else{
             if (hasReachedDestination()){
-                // distance < stopDistance
+                // distance < orbitDistance
                 newSpeed = 0;
             }else{
                 // distance between 10 and 50
@@ -79,7 +79,7 @@ public class ShipObjectModelInstance extends GameObjectModelInstance{
                 // Thrust calculation
 
                 // Distance calculation
-                distanceFactor = (shipNormalTravelSpeed* (getDistanceToDestination()-stopDistance))/minWarpDistance;
+                distanceFactor = (shipNormalTravelSpeed* (getDistanceToDestination()- destination.getOrbitDistance()))/minWarpDistance;
                 newSpeed = distanceFactor +10;
             }
         }
@@ -125,7 +125,7 @@ public class ShipObjectModelInstance extends GameObjectModelInstance{
         return false;
     }
 
-    public void moveShip(Vector3 target){
+    public void moveShip(GameObjectModelInstance target){
         setDestination(target);
         rotateToTarget();
         moveToTarget();
@@ -141,7 +141,7 @@ public class ShipObjectModelInstance extends GameObjectModelInstance{
 
     private float getDistanceToDestination(){
         Vector3 pos = this.getPosition();
-        float dist  = pos.dst(destination);
+        float dist  = pos.dst(destination.getPosition());
         return dist;
     }
 
@@ -161,7 +161,7 @@ public class ShipObjectModelInstance extends GameObjectModelInstance{
     }
 
     public boolean hasReachedDestination(){
-        if (getDistanceToDestination()< stopDistance){
+        if (getDistanceToDestination()< destination.getOrbitDistance()){
             return true;
         }else{
             return false;

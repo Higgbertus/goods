@@ -57,6 +57,8 @@ public class GameObjectModelInstance extends ModelInstance {
     private ModelBuilder modelBuilder;
     private Model model;
     private float orbitRotationSpeed;
+    private float orbitDistance = 10f;
+
     public GameObjectModelInstance(Model model, float size, ObjectType type) {
         super(model);
         modelBuilder = new ModelBuilder();
@@ -272,6 +274,18 @@ public class GameObjectModelInstance extends ModelInstance {
         }else{
             orbit.remove(newObject);
         }
+    }
+
+    public float getOrbitDistance() {
+        return orbitDistance;
+    }
+
+    public void setOrbitDistance(float orbitDistance) {
+        this.orbitDistance = orbitDistance;
+    }
+
+    public void setOrbitDistance() {
+        this.orbitDistance = getSize()+1f;
     }
 
     public ArrayList<GameObjectModelInstance> getOrbitObjects(){

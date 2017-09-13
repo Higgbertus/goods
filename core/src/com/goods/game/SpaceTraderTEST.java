@@ -644,7 +644,7 @@ public class SpaceTraderTEST extends ApplicationAdapter implements InputProcesso
 
 
         if (selected >= 0) {
-            shipObjectModelInstance.moveShip(instances.get(selected).transform.getTranslation(new Vector3()));
+            shipObjectModelInstance.moveShip(instances.get(selected));
         }
 
 
