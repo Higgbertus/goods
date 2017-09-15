@@ -25,6 +25,8 @@ import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.goods.game.Space.DynamicObjectHandler;
 import com.goods.game.Space.GameObjectModelInstance;
 import com.goods.game.Space.ObjectType;
@@ -59,8 +61,6 @@ public class SpaceTraderCam extends ApplicationAdapter implements InputProcessor
     private final int rotateAngle = 70;
     private final float translateUnits = 300f;
     private final Vector3 camPosition= new Vector3(500,500,1000),camDirection= new Vector3(500,500,0);
-
-
 
 
     // Game Helper
@@ -103,6 +103,7 @@ public class SpaceTraderCam extends ApplicationAdapter implements InputProcessor
         perCam.update();
         camController = new CameraInputController(perCam);
         Gdx.input.setInputProcessor(new InputMultiplexer(this,camController));
+        
         modelBatch = new ModelBatch();
 
         initGame();
@@ -277,37 +278,42 @@ public class SpaceTraderCam extends ApplicationAdapter implements InputProcessor
 
 
     private Timestamp timestampLast, timestampNEW;
+    private Timestamp timestampDown, timestampUp;
     private Vector2 lastPos, newPos;
-    private boolean doubleClicked = false;
+    private boolean doubleClicked = false, singleClick;
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-
         // TODO: 13.09.2017 doppelklick geht noch nicht richtig
         // Double Click: Zoomt zu Objekt und fixiert position, mann kann um Objekt herum rotieren und hin bzw weg zoomen. erst wenn mousedragged benützt verliert man die fixierung
-        setDoubleClicked(false);
-            if(timestampLast == null){
-                timestampLast = new Timestamp(System.currentTimeMillis());
-                lastPos = new Vector2(screenX,screenY);
+
+        if(timestampLast == null){
+            timestampLast = new Timestamp(System.currentTimeMillis());
+            lastPos = new Vector2(screenX,screenY);
+        }else{
+            timestampNEW = new Timestamp(System.currentTimeMillis());
+            newPos = new Vector2(screenX,screenY);
+            long timeSpan = timestampNEW.getDateTime()-timestampLast.getDateTime();
+            if (timeSpan < 500 && lastPos.dst(newPos)< 50){
+                setDoubleClicked(true);
             }else{
-                timestampNEW = new Timestamp(System.currentTimeMillis());
-                newPos = new Vector2(screenX,screenY);
-                long timeSpan = timestampNEW.getDateTime()-timestampLast.getDateTime();
-                if (timeSpan < 500 && lastPos.dst(newPos)< 50){
-                    setDoubleClicked(true);
-                }
-                timestampLast = null;
+                setDoubleClicked(false);
             }
-            // start werte für mousedragged
-            startX = screenX;
-            startY = screenY;
-            // Is a Object clicked?
-            //selected = getObject(screenX, screenY);
-            selected = getObject2(screenX, screenY);
-            if (selected >= 0){
-                return true;
-            }else{
-                return false;
-            }
+            timestampLast = timestampNEW;
+        }
+
+
+
+        // start werte für mousedragged
+        startX = screenX;
+        startY = screenY;
+        // Is a Object clicked?
+        //selected = getObject(screenX, screenY);
+        selected = getObject2(screenX, screenY);
+        if (selected >= 0){
+            return true;
+        }else{
+            return false;
+        }
 
     }
 
@@ -434,6 +440,8 @@ public class SpaceTraderCam extends ApplicationAdapter implements InputProcessor
         perCam.update();
         return true;
     }
+
+
     //endregion
 
 
