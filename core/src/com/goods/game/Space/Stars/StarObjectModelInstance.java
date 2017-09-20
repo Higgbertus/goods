@@ -17,8 +17,8 @@ public class StarObjectModelInstance extends GameObjectModelInstance{
     // Planet Settings
 
     // Helper
-    public StarObjectModelInstance(Model model, float size) {
-        super(model, size, oType);
+    public StarObjectModelInstance(Model model, float size, String name) {
+        super(model, size, oType, name);
         setSelfRotationSpeed(0.5f);
         setRandomRotation();
     }
@@ -41,7 +41,7 @@ public class StarObjectModelInstance extends GameObjectModelInstance{
 
     @Override
     public String toString() {
-        return oType.name()+super.getId()+"; Pos:"+this.transform.getTranslation(new Vector3());
+        return oType.name()+super.getId()+getOrbitObjectsToString();
     }
 
 }

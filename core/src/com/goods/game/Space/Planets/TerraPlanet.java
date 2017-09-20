@@ -11,7 +11,7 @@ import com.goods.game.Space.Ressources.RessourceType;
 public class TerraPlanet extends PlanetObjectModelInstance {
     private static PlanetType pType = PlanetType.Terrastic;
     public TerraPlanet(Model model, float size, float ressourceDepositeFactor) {
-        super(model, size, pType, ressourceDepositeFactor, false,false,true);
+        super(model, size, pType, "Erde", ressourceDepositeFactor, false,false,true);
         createRessources();
     }
 

@@ -22,7 +22,6 @@ public class PlanetObjectModelInstance extends GameObjectModelInstance{
     // Factor to calculate the RessourceObject per Size
     private float ressourceDepositeFactor;
 
-
     // Planet Environment
     private boolean isColonizable, hasLifes, isHostileEnvironment;
     private int maxLifeSize;
@@ -32,8 +31,8 @@ public class PlanetObjectModelInstance extends GameObjectModelInstance{
     private Vector3 position;
 
 
-    public PlanetObjectModelInstance(Model model, float size, PlanetType type, float ressourceDepositeFactor, boolean isColonizable, boolean hasLifes, boolean isHostileEnvironment) {
-        super(model, size, oType);
+    public PlanetObjectModelInstance(Model model, float size, PlanetType type, String name, float ressourceDepositeFactor, boolean isColonizable, boolean hasLifes, boolean isHostileEnvironment) {
+        super(model, size, oType, name);
         ressources = new ArrayList<RessourceObject>();
         this.ressourceDepositeFactor = ressourceDepositeFactor;
         this.isColonizable= isColonizable;
@@ -64,8 +63,9 @@ public class PlanetObjectModelInstance extends GameObjectModelInstance{
         return ressourceDepositeFactor;
     }
 
+
     @Override
     public String toString() {
-        return type.name()+super.getId()+"; Pos:"+this.transform.getTranslation(new Vector3());
+        return type.name()+super.getId();
     }
 }

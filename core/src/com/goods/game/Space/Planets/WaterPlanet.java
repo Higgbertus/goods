@@ -11,7 +11,7 @@ import com.goods.game.Space.Ressources.RessourceType;
 public class WaterPlanet extends PlanetObjectModelInstance {
     private static PlanetType pType = PlanetType.Water;
     public WaterPlanet(Model model, float size, float ressourceDepositeFactor) {
-        super(model, size, pType, ressourceDepositeFactor, false, false, true);
+        super(model, size, pType, "Aquarino", ressourceDepositeFactor, false, false, true);
         createRessources();
     }
 

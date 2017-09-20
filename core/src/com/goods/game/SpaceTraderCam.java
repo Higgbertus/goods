@@ -26,7 +26,10 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 import com.goods.game.Space.DynamicObjectHandler;
 import com.goods.game.Space.GameObjectModelInstance;
 import com.goods.game.Space.ObjectType;
@@ -39,14 +42,12 @@ public class SpaceTraderCam extends ApplicationAdapter implements InputProcessor
 
     // Engine Settings
     private Environment environment;
-    private PerspectiveCamera perCam;
+ //   private PerspectiveCamera perCam;
     private ModelBatch modelBatch;
     public CameraInputController camController;
     SpriteBatch spriteBatch;
     BitmapFont font;
     private ModelBuilder modelBuilder;
-
-
 
     // Game Settings
     public static boolean debugMode = false;
@@ -55,12 +56,12 @@ public class SpaceTraderCam extends ApplicationAdapter implements InputProcessor
     private DynamicObjectHandler dynamicObjectHandler;
 
 
-
     // Camera Settings
     private final int zoomSpeed = 15;
     private final int rotateAngle = 70;
     private final float translateUnits = 300f;
     private final Vector3 camPosition= new Vector3(500,500,1000),camDirection= new Vector3(500,500,0);
+    SpacePerspectiveCamera sPerCam;
 
 
     // Game Helper
@@ -70,10 +71,12 @@ public class SpaceTraderCam extends ApplicationAdapter implements InputProcessor
     private ObjectType selectedType;
     private float deltaTime;
     private GameObjectModelInstance activeTarget;
-
+    private GameObjectModelInstance selectedObject;
+    SpaceInputProcessor spaceInputProcessor;
 
 
     public void create () {
+
         Gdx.app.setLogLevel(Application.LOG_DEBUG);
         spriteBatch = new SpriteBatch();
         FreeTypeFontGenerator generator2 = new FreeTypeFontGenerator(Gdx.files.internal("fonts/brlnsr.ttf"));
@@ -90,20 +93,40 @@ public class SpaceTraderCam extends ApplicationAdapter implements InputProcessor
         //environment.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.8f, 10f));
         environment.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, 10f, 5f, 10f));
 
+
         // Kamera 67Grad, aspect ratio
-        perCam = new PerspectiveCamera(67, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+//        perCam = new PerspectiveCamera(67, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+//        // Kamera Position im raum
+//        perCam.position.set(camPosition);
+//        // Gibt an wohin die Kamera schaut
+//        perCam.lookAt(camDirection);
+//        // Gibt an wann etwas ausgeblendet wird
+//        perCam.near = 1f;
+//        perCam.far = 10000000f;
+//        // update camera => camera einstellungen übernehmen
+//        perCam.update();
+//        spaceInputProcessor = new SpaceInputProcessor(perCam);
+
+
+        sPerCam = new SpacePerspectiveCamera(67, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         // Kamera Position im raum
-        perCam.position.set(camPosition);
+        sPerCam.position.set(camPosition);
         // Gibt an wohin die Kamera schaut
-        perCam.lookAt(camDirection);
+        sPerCam.lookAt(camDirection);
         // Gibt an wann etwas ausgeblendet wird
-        perCam.near = 1f;
-        perCam.far = 10000000f;
+        sPerCam.near = 1f;
+        sPerCam.far = 10000000f;
         // update camera => camera einstellungen übernehmen
-        perCam.update();
-        camController = new CameraInputController(perCam);
-        Gdx.input.setInputProcessor(new InputMultiplexer(this,camController));
-        
+        sPerCam.update();
+        spaceInputProcessor = new SpaceInputProcessor(sPerCam);
+
+      //  camController = new CameraInputController(perCam);
+       // Gdx.input.setInputProcessor(new InputMultiplexer(spaceInputProcessor,camController));
+        Gdx.input.setInputProcessor(spaceInputProcessor);
+        //Gdx.input.setInputProcessor(new InputMultiplexer(this,camController));
+
+
+
         modelBatch = new ModelBatch();
 
         initGame();
@@ -122,6 +145,8 @@ public class SpaceTraderCam extends ApplicationAdapter implements InputProcessor
         dynamicObjectHandler = new DynamicObjectHandler(spaceMap);
         dynamicObjectHandler.createShip();
 
+
+        spaceInputProcessor.setObjects(spaceMap.getAllObjects(),dynamicObjectHandler.getShips());
         // Debug Options
         if (SpaceTraderCam.debugMode) {
             createAxes();
@@ -158,7 +183,7 @@ public class SpaceTraderCam extends ApplicationAdapter implements InputProcessor
     public void render () {
         deltaTime = Gdx.graphics.getDeltaTime();
         createDebugText();
-        camController.update();
+      //  camController.update();
         Gdx.gl30.glClearColor(0,0,0,1);
         Gdx.gl30.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         Gdx.gl30.glClear(GL30.GL_COLOR_BUFFER_BIT|GL30.GL_DEPTH_BUFFER_BIT);
@@ -168,15 +193,17 @@ public class SpaceTraderCam extends ApplicationAdapter implements InputProcessor
             star.rotateOrbitObjects(deltaTime);
         }
         // Move dynamic objects
-        if (selected >= 0 && activeTarget != null && selectedShip >= 0) {
+        if (selected >= 0 && activeTarget != null && selectedShip >= 0 && selectedType != ObjectType.Ship) {
             dynamicObjectHandler.getShip(selectedShip).moveShip(spaceMap.getAllObjects().get(selected));
         }
 
-        modelBatch.begin(perCam);
+
+       // stage.draw();
+        modelBatch.begin(sPerCam);
         visibleCount = 0;
         // Render Static Objecs, Stars, Planets
         for (final StarObjectModelInstance star : spaceMap.getStars()) {
-            if (star.isVisible(perCam)) {
+            if (star.isVisible(sPerCam)) {
                 modelBatch.render(star, environment);
                 for (int i = 0; i < 3 && debugMode; i++) {
                     modelBatch.render(star.getLine(i), environment);
@@ -184,7 +211,7 @@ public class SpaceTraderCam extends ApplicationAdapter implements InputProcessor
                 visibleCount++;
             }
             for (final GameObjectModelInstance planet : spaceMap.getAllPlanetsFromStar(star)) {
-                if (planet.isVisible(perCam)) {
+                if (planet.isVisible(sPerCam)) {
                     modelBatch.render(planet, environment);
                     for (int i = 0; i < 3 && debugMode; i++) {
                         modelBatch.render(planet.getLine(i), environment);
@@ -195,7 +222,7 @@ public class SpaceTraderCam extends ApplicationAdapter implements InputProcessor
         }
         // Render dynamic Objects like Ships
         for (final ShipObjectModelInstance ship : dynamicObjectHandler.getShips()) {
-            if (ship.isVisible(perCam)) {
+            if (ship.isVisible(sPerCam)) {
                 modelBatch.render(ship, environment);
                 for (int i = 0; i < 3 && debugMode; i++) {
                     modelBatch.render(ship.getLine(i), environment);
@@ -204,36 +231,34 @@ public class SpaceTraderCam extends ApplicationAdapter implements InputProcessor
             }
         }
         modelBatch.end();
-
-        // Camera Adjustments
-
         Gdx.gl30.glEnable(GL30.GL_DEPTH_TEST);
         spriteBatch.begin();
         font.draw(spriteBatch,sb.toString(),10,Gdx.graphics.getHeight()-10);
         spriteBatch.end();
 
+
         // moveCam
-        if (doubleClicked && selected >0){
-            moveCamToPosition();
-        }
+//        if (isZoominActive && selected >=0){
+//            moveCamToPosition();
+//        }
+        // move camera by user input
+        spaceInputProcessor.actToPressedKeys();
+
     }
 
 
-
-
-
-
     private void moveCamToPosition(){
+
         Vector3 target  = activeTarget.getPosition();
         // rotate to target
-        perCam.lookAt(target);
-        perCam.update();
+        sPerCam.lookAt(target);
+        sPerCam.update();
 
         // move to Target with speed...
-        if (target.dst(perCam.position) > 100){
-            perCam.translate(tmpV1.set(perCam.direction).scl(400*deltaTime));
+        if (target.dst(sPerCam.position) > 100){
+            sPerCam.translate(tmpV1.set(sPerCam.direction).scl(500*deltaTime));
         }else{
-            setDoubleClicked(false);
+            isZoominActive =false;
         }
     }
 
@@ -247,8 +272,8 @@ public class SpaceTraderCam extends ApplicationAdapter implements InputProcessor
     private void createDebugText(){
         sb.delete(0, sb.length());
         sb.append("Debug:");
-        sb.append("\nDC:" + doubleClicked);
-        sb.append("\nShip:" + selectedShip);
+        if (selectedObject != null)
+            sb.append("\n" + selectedObject.toString());
     }
 
     @Override
@@ -264,13 +289,36 @@ public class SpaceTraderCam extends ApplicationAdapter implements InputProcessor
     // wegen dem Inputmultiplexer wird über die bool gesagt das das event richtig verarbeitet wurde oder nicht
     @Override
     public boolean keyDown(int keycode) {
-        if (keycode == Input.Keys.SPACE){
-            perCam.position.set(500, 500, 500);
-            perCam.lookAt(500,500,0);
-            perCam.near = 1f;
-            perCam.far = 10000f;
-            perCam.update();
-            return true;
+        switch(keycode){
+            case Input.Keys.W:{
+                zoom(-1);
+                return true;
+            }
+            case Input.Keys.S:{
+                zoom(1);
+                return true;
+            }
+            case Input.Keys.A:{
+
+            }
+            case Input.Keys.D:{
+
+            }
+            case Input.Keys.LEFT:{
+
+            }
+            case Input.Keys.RIGHT:{
+
+            }
+            case Input.Keys.UP:{
+
+            }
+            case Input.Keys.DOWN:{
+
+            }
+            case Input.Keys.SPACE:{
+
+            }
         }
         return false;
     }
@@ -279,29 +327,32 @@ public class SpaceTraderCam extends ApplicationAdapter implements InputProcessor
 
     private Timestamp timestampLast, timestampNEW;
     private Timestamp timestampDown, timestampUp;
+    private int clicked =0;
     private Vector2 lastPos, newPos;
     private boolean doubleClicked = false, singleClick;
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+
+
+
         // TODO: 13.09.2017 doppelklick geht noch nicht richtig
         // Double Click: Zoomt zu Objekt und fixiert position, mann kann um Objekt herum rotieren und hin bzw weg zoomen. erst wenn mousedragged benützt verliert man die fixierung
-
-        if(timestampLast == null){
-            timestampLast = new Timestamp(System.currentTimeMillis());
-            lastPos = new Vector2(screenX,screenY);
-        }else{
-            timestampNEW = new Timestamp(System.currentTimeMillis());
-            newPos = new Vector2(screenX,screenY);
-            long timeSpan = timestampNEW.getDateTime()-timestampLast.getDateTime();
-            if (timeSpan < 500 && lastPos.dst(newPos)< 50){
-                setDoubleClicked(true);
-            }else{
-                setDoubleClicked(false);
-            }
-            timestampLast = timestampNEW;
-        }
-
-
+//        timestampDown = new Timestamp(System.currentTimeMillis());
+//        setDoubleClicked(false);
+//        if(timestampLast == null){
+//            timestampLast = new Timestamp(System.currentTimeMillis());
+//            lastPos = new Vector2(screenX,screenY);
+//        }else{
+//            timestampNEW = new Timestamp(System.currentTimeMillis());
+//            newPos = new Vector2(screenX,screenY);
+//            long timeSpan = timestampNEW.getDateTime()-timestampLast.getDateTime();
+//            if (timeSpan < 500 && lastPos.dst(newPos)< 50){
+//                setDoubleClicked(true);
+//            }else{
+//                setDoubleClicked(false);
+//            }
+//            timestampLast = null;
+//        }
 
         // start werte für mousedragged
         startX = screenX;
@@ -309,30 +360,50 @@ public class SpaceTraderCam extends ApplicationAdapter implements InputProcessor
         // Is a Object clicked?
         //selected = getObject(screenX, screenY);
         selected = getObject2(screenX, screenY);
-        if (selected >= 0){
-            return true;
-        }else{
-            return false;
-        }
-
+        return false;
     }
 
     private void setDoubleClicked(boolean isDoubleClicked){
         doubleClicked = isDoubleClicked;
     }
 
+    boolean isZoominActive = false;
+
     @Override
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-        if (selected >= 0) {
-            if (selected == getObject2(screenX, screenY)){
-                setSelected(selected);
+//        timestampUp = new Timestamp(System.currentTimeMillis());
+//        long timeSpan = timestampUp.getDateTime()-timestampDown.getDateTime();
+//        if(timeSpan < 200){
+//            if (clicked <3){
+//                clicked++;
+//            }else{
+//                clicked=0;
+//            }
+//        }
+
+        isZoominActive = false;
+        if (selected >= 0){
+            switch(button){
+                case Input.Buttons.LEFT:{
+                    setSelected(getObject2(screenX,screenY));
+                    return true;
+                }
+                case Input.Buttons.RIGHT:{
+
+                    return true;
+                }
+                case Input.Buttons.MIDDLE:{
+                    // zoom button
+                    setSelected(getObject2(screenX,screenY));
+                    isZoominActive = true;
+                    return true;
+                }
             }
-//            selected = -1;
-            return true;
         }else{
-            planetInfos = "";
+            selectedShip = -1;
             return false;
         }
+        return false;
     }
 
     public void setSelected (int value) {
@@ -340,17 +411,18 @@ public class SpaceTraderCam extends ApplicationAdapter implements InputProcessor
             switch(selectedType){
                 case Ship: {
                     selectedShip = value;
-                    activeTarget = null;
+                    activeTarget = dynamicObjectHandler.getShip(value);
+                    selectedObject = dynamicObjectHandler.getShip(value);
                     break;
                 }
                 case Planet: {
                     activeTarget = spaceMap.getAllObjects().get(value);
-                    planetInfos = activeTarget.toString();
+                    selectedObject = spaceMap.getAllObjects().get(value);
                     break;
                 }
                 case Star: {
                     activeTarget = spaceMap.getAllObjects().get(value);
-                    planetInfos = activeTarget.toString();
+                    selectedObject = spaceMap.getAllObjects().get(value);
                     break;
                 }
             }
@@ -359,8 +431,15 @@ public class SpaceTraderCam extends ApplicationAdapter implements InputProcessor
 
 
     // TODO: 12.09.2017 auch dynamicobjects durchlaufen
+
+    /**
+     *
+     * @param screenX
+     * @param screenY
+     * @return gibt den Index zurück oder -1 wenn kein object angeklickt!
+     */
     public int getObject2(int screenX, int screenY) {
-        Ray ray = perCam.getPickRay(screenX, screenY);
+        Ray ray = sPerCam.getPickRay(screenX, screenY);
         int result = -1;
         float distance = -1;
         for (int i = 0; i < spaceMap.getAllObjects().size(); ++i) {
@@ -401,7 +480,7 @@ public class SpaceTraderCam extends ApplicationAdapter implements InputProcessor
 
     @Override
     public boolean touchDragged(int screenX, int screenY, int pointer) {
-
+        setDoubleClicked(false);
         final float deltaX = (screenX - startX) / Gdx.graphics.getWidth();
         final float deltaY = (startY - screenY) / Gdx.graphics.getHeight();
         startX = screenX;
@@ -410,18 +489,18 @@ public class SpaceTraderCam extends ApplicationAdapter implements InputProcessor
         tmpV2 = new Vector3();
 
         // so is es genau die kamera (kopf drehen)
-        target = new Vector3(perCam.position);
+        target = new Vector3(sPerCam.position);
 
         if (Gdx.input.isButtonPressed(0)) {
-            tmpV1.set(perCam.direction).crs(perCam.up).y = 0f;
-            perCam.rotateAround(target, tmpV1.nor(), deltaY * rotateAngle);
-            perCam.rotateAround(target, Vector3.Y, deltaX * -rotateAngle);
+            tmpV1.set(sPerCam.direction).crs(sPerCam.up).y = 0f;
+            sPerCam.rotateAround(target, tmpV1.nor(), deltaY * rotateAngle);
+            sPerCam.rotateAround(target, Vector3.Y, deltaX * -rotateAngle);
         } else if (Gdx.input.isButtonPressed(1)) {
-            perCam.translate(tmpV1.set(perCam.direction).crs(perCam.up).nor().scl(-deltaX * translateUnits));
-            perCam.translate(tmpV2.set(perCam.up).scl(-deltaY * translateUnits));
+            sPerCam.translate(tmpV1.set(sPerCam.direction).crs(sPerCam.up).nor().scl(-deltaX * translateUnits));
+            sPerCam.translate(tmpV2.set(sPerCam.up).scl(-deltaY * translateUnits));
             // if (translateTarget) target.add(tmpV1).add(tmpV2);
         }
-        perCam.update();
+        sPerCam.update();
         return true;
     }
 
@@ -430,17 +509,30 @@ public class SpaceTraderCam extends ApplicationAdapter implements InputProcessor
         return false;
     }
 
+    private void zoom(int direction){
+        tmpV1 = new Vector3(sPerCam.position);
+        if (direction < 0)
+            sPerCam.translate(tmpV1.set(sPerCam.direction).scl(direction + zoomSpeed));
+        else
+            sPerCam.translate(tmpV1.set(sPerCam.direction).scl(direction - zoomSpeed));
+        sPerCam.update();
+    }
+
     @Override
     public boolean scrolled(int amount) {
-        tmpV1 = new Vector3(perCam.position);
-        if (amount < 0)
-            perCam.translate(tmpV1.set(perCam.direction).scl(amount + zoomSpeed));
-        else
-            perCam.translate(tmpV1.set(perCam.direction).scl(amount - zoomSpeed));
-        perCam.update();
+        zoom(amount);
         return true;
     }
 
+
+    private void moveCam() {
+        // polling:
+//        if (Gdx.input.isKeyPressed(Input.Keys.W)){
+//            zoom(-1);
+//        }
+
+
+    }
 
     //endregion
 

@@ -10,6 +10,6 @@ import com.goods.game.Space.ObjectType;
 
 public class Star extends StarObjectModelInstance {
     public Star(Model model, float size) {
-        super(model,size);
+        super(model,size, "Sun");
     }
 }

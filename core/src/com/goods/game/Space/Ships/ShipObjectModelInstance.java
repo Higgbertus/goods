@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.StringBuilder;
 import com.goods.game.Space.GameObjectModelInstance;
 import com.goods.game.Space.ObjectType;
 import com.goods.game.Space.Ressources.Form;
@@ -22,7 +23,7 @@ public class ShipObjectModelInstance extends GameObjectModelInstance{
 
     // Ship Settings
     private Vector3 direction, direction4Rotation;
-
+    private ShipType sType;
     private GameObjectModelInstance destination;
     private boolean isMoving;
     private float shipNormalTravelSpeed, shipRotationSpeed, shipWarpTravelSpeed;
@@ -169,15 +170,18 @@ public class ShipObjectModelInstance extends GameObjectModelInstance{
     }
 
     // Helper
-    public ShipObjectModelInstance(Model model, float size, float shipNormalTravelSpeed, float shipWarpTravelSpeed, float shipRotationSpeed, float accelerationPower, float decelerationPower, float rotationPower) {
-        super(model, size, oType);
+    public ShipObjectModelInstance(Model model, float size, ShipType sType, String name, int sotrages, float shipNormalTravelSpeed, float shipWarpTravelSpeed, float shipRotationSpeed, float accelerationPower, float decelerationPower, float rotationPower) {
+        super(model, size, oType, name);
+        this.sType = sType;
         this.shipNormalTravelSpeed = shipNormalTravelSpeed;
         this.shipRotationSpeed = shipRotationSpeed;
         this.shipWarpTravelSpeed = shipWarpTravelSpeed;
         this.decelerationPower = decelerationPower;
         this.accelerationPower = accelerationPower;
         this.rotationPower = rotationPower;
-        this.storages = new Storage[4];
+        this.storages = new Storage[sotrages];
+        sb = new StringBuilder();
+        sb1 = new StringBuilder();
     }
 
     public void setStorageType(int storage, Form form, float storageSize){
@@ -208,9 +212,36 @@ public class ShipObjectModelInstance extends GameObjectModelInstance{
        return storages.length;
     }
 
+    private String cargoToString(){
+        sb1.delete(0, sb.length());
+       // Material[60,100],Material[60,100],Material[60,100],Material[60,100]
+        for (int i = 0; i < storages.length; i++) {
+            sb1.append(storages[i].toString()+",");
+        }
+        sb1.replace(sb1.length()-1,sb1.length(),"");
+        return sb1.toString();
+    }
+
+    private String routeToString(){
+        if(destination != null){
+            return destination.getType().name()+ " " +destination.getName();
+        }else{
+            return "no active route";
+        }
+    }
+
+    StringBuilder sb, sb1;
+
     @Override
     public String toString() {
-        return oType.name()+super.getId()+"; Pos:"+this.getPosition()+"; Target: "+destination.toString();
+        sb.delete(0, sb.length());
+        sb.append("Ship:");
+        sb.append("\n"+sType.name() + " " + super.getName());
+        sb.append("\nCargo:");
+        sb.append("\n"+cargoToString());
+        sb.append("\nTransport:");
+        sb.append("\n"+routeToString());
+       return sb.toString();
     }
 
 }

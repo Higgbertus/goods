@@ -11,7 +11,7 @@ import com.goods.game.Space.Ressources.RessourceType;
 public class GasPlanet extends PlanetObjectModelInstance {
     private static PlanetType pType = PlanetType.Gas;
     public GasPlanet(Model model, float size, float ressourceDepositeFactor) {
-        super(model, size, pType, ressourceDepositeFactor, false, false, true);
+        super(model, size, pType, "Stinky", ressourceDepositeFactor, false, false, true);
         createRessources();
     }
 

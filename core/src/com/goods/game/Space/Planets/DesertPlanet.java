@@ -12,7 +12,7 @@ public class DesertPlanet extends PlanetObjectModelInstance {
     private static PlanetType pType = PlanetType.Desert;
 
     public DesertPlanet(Model model, float size, float ressourceDepositeFactor) {
-        super(model, size, pType, ressourceDepositeFactor, false, false, true);
+        super(model, size, pType, "0Life", ressourceDepositeFactor, false, false, true);
         createRessources();
     }
 

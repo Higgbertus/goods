@@ -67,6 +67,8 @@ public class Storage {
         }
     }
 
+
+
     public void removeLoad(){
         currentAmount = 0f;
     }
@@ -81,5 +83,15 @@ public class Storage {
 
     public boolean isFull(){
         return currentAmount == storageSpace ? true: false;
+    }
+
+    @Override
+    public String toString() {
+        if (ressourceType == null){
+            return form.name()+"[empty]";
+        }else{
+            return ressourceType.name()+"["+currentAmount+"/"+storageSpace+"]";
+        }
+
     }
 }

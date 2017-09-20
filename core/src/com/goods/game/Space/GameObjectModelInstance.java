@@ -12,6 +12,7 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
+import com.badlogic.gdx.utils.StringBuilder;
 import com.goods.game.Space.Shapes.ObjectShape;
 import com.goods.game.SpaceTrader;
 
@@ -45,7 +46,6 @@ public class GameObjectModelInstance extends ModelInstance {
     private double surfaceArea;
     protected double volume;
     private String name;
-    private int id;
     private boolean isAlive, hasChildObjects =false;
     private float selfRotationSpeed = 0.4f;
     private ObjectType type;
@@ -58,23 +58,26 @@ public class GameObjectModelInstance extends ModelInstance {
     private Model model;
     private float orbitRotationSpeed;
     private float orbitDistance = 10f;
+    private static  int counter = 1;
+    private int id = counter++;
 
-    public GameObjectModelInstance(Model model, float size, ObjectType type) {
+    public GameObjectModelInstance(Model model, float size, ObjectType type, String name) {
         super(model);
         modelBuilder = new ModelBuilder();
         isAlive = true;
-        id++;
         this.type = type;
-        this.name = type.name()+id;
         this.size = size;
+        this.name = name;
         volume = ((4 * MathUtils.PI * Math.pow(size*sizeFactor,3))/3);
         surfaceArea = 4 * MathUtils.PI * Math.pow(size*sizeFactor,2);
         tranfsormNEW = new Matrix4();
+        sb = new StringBuilder();
         if (SpaceTrader.debugMode){
             coordAxes = new ModelInstance[3];
             createCoordAxes();
         }
     }
+
 
     public void setPosition(Vector3 position) {
         this.position = position;
@@ -304,8 +307,31 @@ public class GameObjectModelInstance extends ModelInstance {
         return id;
     }
 
+    StringBuilder sb;
+
+    public String getOrbitObjectsToString(){
+        if (orbit == null){
+            return "";
+        }else{
+            sb.delete(0, sb.length());
+            // Material[60,100],Material[60,100],Material[60,100],Material[60,100]
+            sb.append("\nOrbit:\n");
+            sb.append(orbit.toString());
+//            for (GameObjectModelInstance orbitObject:orbit) {
+//                sb.append(orbitObject.toString()+",");
+//            }
+           // sb.replace(sb.length()-1,sb.length(),"");
+            return sb.toString();
+        }
+
+    }
+
     @Override
     public String toString() {
-        return name+"; "+"Pos:"+this.transform.getTranslation(new Vector3())+"; Size:"+size;
+        return name+"; "+"Pos:"+this.getPosition()+"; Size:"+size;
+    }
+
+    public String getName() {
+        return name;
     }
 }
