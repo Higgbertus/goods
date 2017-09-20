@@ -242,13 +242,12 @@ public class SpaceTraderCam extends ApplicationAdapter implements InputProcessor
 //            moveCamToPosition();
 //        }
         // move camera by user input
-        spaceInputProcessor.actToPressedKeys();
+        spaceInputProcessor.actToPressedKeys(deltaTime);
 
     }
 
 
     private void moveCamToPosition(){
-
         Vector3 target  = activeTarget.getPosition();
         // rotate to target
         sPerCam.lookAt(target);

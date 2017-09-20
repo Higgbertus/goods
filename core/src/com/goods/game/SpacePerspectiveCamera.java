@@ -1,6 +1,8 @@
 package com.goods.game;
 
 import com.badlogic.gdx.graphics.PerspectiveCamera;
+import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.goods.game.Space.GameObjectModelInstance;
 
@@ -21,16 +23,30 @@ public class SpacePerspectiveCamera extends PerspectiveCamera {
     }
 
     private GameObjectModelInstance target;
+    private boolean stickToTarget;
 
 
-    public void moveToTarget(){
-
+    public boolean isStickToTarget() {
+        return stickToTarget;
     }
 
-    public void rotateAroundTarget(){
-
+    public void setStickToTarget(boolean stickToTarget) {
+        this.stickToTarget = stickToTarget;
     }
 
+    public void moveToTarget(float deltaTime, float speed){
+        tmpV1 = new Vector3();
+        // rotate to target
+        this.lookAt(target.getPosition());
+        this.update();
+
+        // move to Target with speed...
+        this.translate(tmpV1.set(this.direction).scl(speed*deltaTime));
+
+        if (target.getPosition().dst(this.position) <= target.getOrbitDistance() +50) {
+            stickToTarget = true;
+        }
+    }
 
 
     public void rotateCam(float deltaX, float deltaY, int rotateAngle){
@@ -51,9 +67,6 @@ public class SpacePerspectiveCamera extends PerspectiveCamera {
         update();
     }
 
-    public void stickToTarget(){
-
-    }
 
     public void zoom(int direction, float zoomSpeed){
         tmpV1 = new Vector3(this.position);
@@ -62,5 +75,11 @@ public class SpacePerspectiveCamera extends PerspectiveCamera {
         else
             this.translate(tmpV1.set(this.direction).scl(direction - zoomSpeed));
         update();
+    }
+
+    public void followTarget(float deltaTime) {
+        // Move Camera with target Movements
+        // Allow rotation, zoom
+
     }
 }

@@ -283,6 +283,8 @@ public class GameObjectModelInstance extends ModelInstance {
         return orbitDistance;
     }
 
+
+    // TODO: 20.09.2017 Orbit distance richtig setzen evtl mit gravitation
     public void setOrbitDistance(float orbitDistance) {
         this.orbitDistance = orbitDistance;
     }
