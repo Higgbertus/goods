@@ -42,7 +42,7 @@ public class SpaceInputProcessor implements InputProcessor {
 
     // Mouse Buttons
     public boolean leftMB, rightMB, middleMB, fwMB, bwMB;
-    public boolean keyW = false, keyS = false, keyA = false, keyD = false;
+    public boolean keyW = false, keyS = false, keyA = false, keyD = false, keyLEFT = false, keyRIGHT = false, keyDOWN = false, keyUP = false;
     /**
      * The target to rotate around.
      */
@@ -76,16 +76,20 @@ public class SpaceInputProcessor implements InputProcessor {
                 return true;
             }
             case Input.Keys.LEFT: {
-
+                keyLEFT = true;
+                return true;
             }
             case Input.Keys.RIGHT: {
-
+                keyRIGHT = true;
+                return true;
             }
             case Input.Keys.UP: {
-
+                keyUP = true;
+                return true;
             }
             case Input.Keys.DOWN: {
-
+                keyDOWN = true;
+                return true;
             }
             case Input.Keys.SPACE: {
                 sPerCam.position.set(500, 500, 500);
@@ -121,16 +125,20 @@ public class SpaceInputProcessor implements InputProcessor {
                 return true;
             }
             case Input.Keys.LEFT: {
-
+                keyLEFT = false;
+                return true;
             }
             case Input.Keys.RIGHT: {
-
+                keyRIGHT = false;
+                return true;
             }
             case Input.Keys.UP: {
-
+                keyUP = false;
+                return true;
             }
             case Input.Keys.DOWN: {
-
+                keyDOWN = false;
+                return true;
             }
             case Input.Keys.SPACE: {
 
@@ -285,6 +293,7 @@ public class SpaceInputProcessor implements InputProcessor {
         return result;
     }
 
+    public float angleX =0f,angleY =0f;
     public void actToPressedKeys( float deltaTime) {
         if (keyW) {
             sPerCam.zoom(-1, zoomSpeed);
@@ -297,6 +306,18 @@ public class SpaceInputProcessor implements InputProcessor {
         }
         if (keyD) {
             sPerCam.moveCam(-1f, 0, translateUnitsKey);
+        }
+        if (keyLEFT) {
+            angleY-=1f;
+        }
+        if (keyRIGHT) {
+            angleY+=1f;
+        }
+        if (keyDOWN) {
+            angleX-=1f;
+        }
+        if (keyUP) {
+            angleX+=1f;
         }
         // move Cam to Position if middle Mousce clicked and Target valid, as long as not distance reached
         if (isZoominActive && focusedObject != null) {

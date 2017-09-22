@@ -4,11 +4,10 @@ import com.badlogic.gdx.Application;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL30;
-import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
@@ -19,17 +18,20 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
+import com.badlogic.gdx.graphics.g3d.particles.ParticleEffect;
+import com.badlogic.gdx.graphics.g3d.particles.ParticleEffectLoader;
+import com.badlogic.gdx.graphics.g3d.particles.ParticleSystem;
+import com.badlogic.gdx.graphics.g3d.particles.batches.BillboardParticleBatch;
+import com.badlogic.gdx.graphics.g3d.particles.influencers.DynamicsInfluencer;
+import com.badlogic.gdx.graphics.g3d.particles.influencers.DynamicsModifier;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
+import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
-import com.badlogic.gdx.utils.viewport.FitViewport;
-import com.badlogic.gdx.utils.viewport.Viewport;
 import com.goods.game.Space.DynamicObjectHandler;
 import com.goods.game.Space.GameObjectModelInstance;
 import com.goods.game.Space.ObjectType;
@@ -38,7 +40,7 @@ import com.goods.game.Space.SpaceMap;
 import com.goods.game.Space.Stars.StarObjectModelInstance;
 import com.sun.jmx.snmp.Timestamp;
 
-public class SpaceTraderCam extends ApplicationAdapter implements InputProcessor {
+public class SpaceTraderCam extends ApplicationAdapter{
 
     // Engine Settings
     private Environment environment;
@@ -54,13 +56,14 @@ public class SpaceTraderCam extends ApplicationAdapter implements InputProcessor
     private SpaceMap spaceMap;
     private ModelInstance[] axes;
     private DynamicObjectHandler dynamicObjectHandler;
-
+    ParticleEffect particleEffect;
+    ParticleSystem particleSystem;
 
     // Camera Settings
     private final int zoomSpeed = 15;
     private final int rotateAngle = 70;
     private final float translateUnits = 300f;
-    private final Vector3 camPosition= new Vector3(500,500,1000),camDirection= new Vector3(500,500,0);
+    private final Vector3 camPosition= new Vector3(500,500,610),camDirection= new Vector3(500,500,0);
     SpacePerspectiveCamera sPerCam;
 
 
@@ -127,6 +130,28 @@ public class SpaceTraderCam extends ApplicationAdapter implements InputProcessor
 
 
 
+
+        particleSystem = ParticleSystem.get();
+// Since our particle effects are PointSprites, we create a PointSpriteParticleBatch
+        BillboardParticleBatch billboardParticleBatch = new BillboardParticleBatch();
+        billboardParticleBatch.setCamera(sPerCam);
+        particleSystem.add(billboardParticleBatch);
+
+        AssetManager assets = new AssetManager();
+        ParticleEffectLoader.ParticleEffectLoadParameter loadParam = new ParticleEffectLoader.ParticleEffectLoadParameter(particleSystem.getBatches());
+        assets.load("particles/propulsion.p", ParticleEffect.class, loadParam);
+        assets.finishLoading();
+
+        ParticleEffect originalEffect = assets.get("particles/propulsion.p");
+// we cannot use the originalEffect, we must make a copy each time we create new particle effect
+        particleEffect = originalEffect.copy();
+        particleEffect.init();
+
+
+
+        particleEffect.start();  // optional: particle will begin playing immediately
+        particleSystem.add(particleEffect);
+
         modelBatch = new ModelBatch();
 
         initGame();
@@ -144,7 +169,9 @@ public class SpaceTraderCam extends ApplicationAdapter implements InputProcessor
         // Create first Ship
         dynamicObjectHandler = new DynamicObjectHandler(spaceMap);
         dynamicObjectHandler.createShip();
-
+        dynamicObjectHandler.getShip(0).setPosition(new Vector3(450,550,300));
+        dynamicObjectHandler.getShip(0).setRotation(new Quaternion(Vector3.X,90));
+        dynamicObjectHandler.getShip(0).updateTransform();
 
         spaceInputProcessor.setObjects(spaceMap.getAllObjects(),dynamicObjectHandler.getShips());
         // Debug Options
@@ -197,6 +224,8 @@ public class SpaceTraderCam extends ApplicationAdapter implements InputProcessor
             dynamicObjectHandler.getShip(selectedShip).moveShip(spaceMap.getAllObjects().get(selected));
         }
 
+        // move Patricle Effects
+        moveParticles();
 
        // stage.draw();
         modelBatch.begin(sPerCam);
@@ -230,6 +259,9 @@ public class SpaceTraderCam extends ApplicationAdapter implements InputProcessor
                 visibleCount++;
             }
         }
+        //        // Render Particle Affects
+        renderParticleEffects();
+
         modelBatch.end();
         Gdx.gl30.glEnable(GL30.GL_DEPTH_TEST);
         spriteBatch.begin();
@@ -244,27 +276,88 @@ public class SpaceTraderCam extends ApplicationAdapter implements InputProcessor
         // move camera by user input
         spaceInputProcessor.actToPressedKeys(deltaTime);
 
+
+
     }
 
+    private void moveParticles(){
+//        ShipObjectModelInstance ship = dynamicObjectHandler.getShip(0);
+//        Vector3 shipPos = new Vector3(ship.getPosition());
+//        Vector3 shipDir = new Vector3(ship.getPosition());
+//        Vector3 shipPosOffset = new Vector3(ship.getPosition());
+//        shipPosOffset.sub(0,6,0);
+//        Vector3 particlePos = new Vector3(shipPosOffset);
+//        shipDir.nor();
+//        Matrix4 transform = new Matrix4();
+//        transform.setTranslation(shipPos);
+//        transform.translate(0,-20,0);
+//        // move Particles in Ship Position
+//
+//        Quaternion rot = ship.getRotation();
+//
+//        // rotate Particles in opposite Ship direction
+//        float xAngle, yAngle;
+//        xAngle = rot.getAngleAround(Vector3.Y);
+//        yAngle = rot.getAngleAround(Vector3.X);
+//
+//        Matrix4 mat = new Matrix4();
+//
+//        Matrix4 rotation = new Matrix4();
+//        rotation.set(rot);
+//
+//
+//        particlePos.sub(shipPos);
+//        mat.setTranslation(shipPos);
+//        mat.mul(rotation);
+//        mat.translate(particlePos);
+        Matrix4 mat = new Matrix4();
+        mat.setTranslation(new Vector3(500,500,600));
+        particleEffect.setTransform(mat);
 
-    private void moveCamToPosition(){
-        Vector3 target  = activeTarget.getPosition();
-        // rotate to target
-        sPerCam.lookAt(target);
-        sPerCam.update();
+       // xAngle = ship.getRotation().getAxisAngle(Vector3.X);
+        // schießt die camera ab!?!?!?!?! es geht kein links rechts rotieren mehr ?????
+        //        yAngle = ship.getRotation().getAxisAngle(Vector3.Y);
+        for (int i = 0; i < particleEffect.getControllers().size; i++) {
+            if (particleEffect.getControllers().get(i).findInfluencer(DynamicsInfluencer.class) != null) {
+//                 Gdx.app.log("INFO", "FOUND DI");
+                DynamicsInfluencer di = particleEffect.getControllers().get(i).findInfluencer(DynamicsInfluencer.class);
+                DynamicsModifier dm;
+                for (int j = 0; j < di.velocities.size; j++) {
+                    dm = (DynamicsModifier) di.velocities.get(j);
+                    if (dm instanceof DynamicsModifier.PolarAcceleration) {
+                        // horizontal +/- spread
 
-        // move to Target with speed...
-        if (target.dst(sPerCam.position) > 100){
-            sPerCam.translate(tmpV1.set(sPerCam.direction).scl(500*deltaTime));
-        }else{
-            isZoominActive =false;
+                        // rotiert um X Achse
+//                        float phiSpread = Math.abs(((DynamicsModifier.PolarAcceleration) dm).phiValue.getHighMax() - ((DynamicsModifier.PolarAcceleration) dm).phiValue.getHighMin());
+//                        ((DynamicsModifier.PolarAcceleration) dm).phiValue.setHigh(spaceInputProcessor.angleX- 0.5f * phiSpread, spaceInputProcessor.angleX + 0.5f * phiSpread);
+//
+//                        // rotiert um Y Achse
+//                        float thetaSpread = Math.abs(((DynamicsModifier.PolarAcceleration) dm).thetaValue.getHighMax() - ((DynamicsModifier.PolarAcceleration) dm).thetaValue.getHighMin());
+//                        ((DynamicsModifier.PolarAcceleration) dm).thetaValue.setHigh(spaceInputProcessor.angleY - thetaSpread * 0.5f, spaceInputProcessor.angleY + thetaSpread * 0.5f); // rotation
+
+
+
+
+                        // rotiert um z Achse
+                        ((DynamicsModifier.PolarAcceleration) dm).phiValue.setHigh(spaceInputProcessor.angleX, spaceInputProcessor.angleX );
+
+                        // rotiert um Y Achse
+                        ((DynamicsModifier.PolarAcceleration) dm).thetaValue.setHigh(spaceInputProcessor.angleY,spaceInputProcessor.angleY); // rotation
+                        // around
+                        // y-axis
+                    }
+                }
+            }
         }
     }
 
-
-
-
-
+    private void renderParticleEffects() {
+        particleSystem.update(); // technically not necessary for rendering
+        particleSystem.begin();
+        particleSystem.draw();
+        particleSystem.end();
+        modelBatch.render(particleSystem);
+    }
 
 
     StringBuilder sb = new StringBuilder();
@@ -285,126 +378,6 @@ public class SpaceTraderCam extends ApplicationAdapter implements InputProcessor
     }
 
     //region Camera Changes
-    // wegen dem Inputmultiplexer wird über die bool gesagt das das event richtig verarbeitet wurde oder nicht
-    @Override
-    public boolean keyDown(int keycode) {
-        switch(keycode){
-            case Input.Keys.W:{
-                zoom(-1);
-                return true;
-            }
-            case Input.Keys.S:{
-                zoom(1);
-                return true;
-            }
-            case Input.Keys.A:{
-
-            }
-            case Input.Keys.D:{
-
-            }
-            case Input.Keys.LEFT:{
-
-            }
-            case Input.Keys.RIGHT:{
-
-            }
-            case Input.Keys.UP:{
-
-            }
-            case Input.Keys.DOWN:{
-
-            }
-            case Input.Keys.SPACE:{
-
-            }
-        }
-        return false;
-    }
-    private float startX,startY;
-
-
-    private Timestamp timestampLast, timestampNEW;
-    private Timestamp timestampDown, timestampUp;
-    private int clicked =0;
-    private Vector2 lastPos, newPos;
-    private boolean doubleClicked = false, singleClick;
-    @Override
-    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-
-
-
-        // TODO: 13.09.2017 doppelklick geht noch nicht richtig
-        // Double Click: Zoomt zu Objekt und fixiert position, mann kann um Objekt herum rotieren und hin bzw weg zoomen. erst wenn mousedragged benützt verliert man die fixierung
-//        timestampDown = new Timestamp(System.currentTimeMillis());
-//        setDoubleClicked(false);
-//        if(timestampLast == null){
-//            timestampLast = new Timestamp(System.currentTimeMillis());
-//            lastPos = new Vector2(screenX,screenY);
-//        }else{
-//            timestampNEW = new Timestamp(System.currentTimeMillis());
-//            newPos = new Vector2(screenX,screenY);
-//            long timeSpan = timestampNEW.getDateTime()-timestampLast.getDateTime();
-//            if (timeSpan < 500 && lastPos.dst(newPos)< 50){
-//                setDoubleClicked(true);
-//            }else{
-//                setDoubleClicked(false);
-//            }
-//            timestampLast = null;
-//        }
-
-        // start werte für mousedragged
-        startX = screenX;
-        startY = screenY;
-        // Is a Object clicked?
-        //selected = getObject(screenX, screenY);
-        selected = getObject2(screenX, screenY);
-        return false;
-    }
-
-    private void setDoubleClicked(boolean isDoubleClicked){
-        doubleClicked = isDoubleClicked;
-    }
-
-    boolean isZoominActive = false;
-
-    @Override
-    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-//        timestampUp = new Timestamp(System.currentTimeMillis());
-//        long timeSpan = timestampUp.getDateTime()-timestampDown.getDateTime();
-//        if(timeSpan < 200){
-//            if (clicked <3){
-//                clicked++;
-//            }else{
-//                clicked=0;
-//            }
-//        }
-
-        isZoominActive = false;
-        if (selected >= 0){
-            switch(button){
-                case Input.Buttons.LEFT:{
-                    setSelected(getObject2(screenX,screenY));
-                    return true;
-                }
-                case Input.Buttons.RIGHT:{
-
-                    return true;
-                }
-                case Input.Buttons.MIDDLE:{
-                    // zoom button
-                    setSelected(getObject2(screenX,screenY));
-                    isZoominActive = true;
-                    return true;
-                }
-            }
-        }else{
-            selectedShip = -1;
-            return false;
-        }
-        return false;
-    }
-
     public void setSelected (int value) {
         if (selected == value) {
             switch(selectedType){
@@ -459,81 +432,5 @@ public class SpaceTraderCam extends ApplicationAdapter implements InputProcessor
         }
         return result;
     }
-
-    @Override
-    public boolean keyUp(int keycode) {
-        return false;
-    }
-
-    @Override
-    public boolean keyTyped(char character) {
-        return false;
-    }
-
-    Vector3 tmpV1 = new Vector3();
-    Vector3 tmpV2 = new Vector3();
-    /**
-     * The target to rotate around.
-     */
-    public Vector3 target = new Vector3();
-
-    @Override
-    public boolean touchDragged(int screenX, int screenY, int pointer) {
-        setDoubleClicked(false);
-        final float deltaX = (screenX - startX) / Gdx.graphics.getWidth();
-        final float deltaY = (startY - screenY) / Gdx.graphics.getHeight();
-        startX = screenX;
-        startY = screenY;
-        tmpV1 = new Vector3();
-        tmpV2 = new Vector3();
-
-        // so is es genau die kamera (kopf drehen)
-        target = new Vector3(sPerCam.position);
-
-        if (Gdx.input.isButtonPressed(0)) {
-            tmpV1.set(sPerCam.direction).crs(sPerCam.up).y = 0f;
-            sPerCam.rotateAround(target, tmpV1.nor(), deltaY * rotateAngle);
-            sPerCam.rotateAround(target, Vector3.Y, deltaX * -rotateAngle);
-        } else if (Gdx.input.isButtonPressed(1)) {
-            sPerCam.translate(tmpV1.set(sPerCam.direction).crs(sPerCam.up).nor().scl(-deltaX * translateUnits));
-            sPerCam.translate(tmpV2.set(sPerCam.up).scl(-deltaY * translateUnits));
-            // if (translateTarget) target.add(tmpV1).add(tmpV2);
-        }
-        sPerCam.update();
-        return true;
-    }
-
-    @Override
-    public boolean mouseMoved(int screenX, int screenY) {
-        return false;
-    }
-
-    private void zoom(int direction){
-        tmpV1 = new Vector3(sPerCam.position);
-        if (direction < 0)
-            sPerCam.translate(tmpV1.set(sPerCam.direction).scl(direction + zoomSpeed));
-        else
-            sPerCam.translate(tmpV1.set(sPerCam.direction).scl(direction - zoomSpeed));
-        sPerCam.update();
-    }
-
-    @Override
-    public boolean scrolled(int amount) {
-        zoom(amount);
-        return true;
-    }
-
-
-    private void moveCam() {
-        // polling:
-//        if (Gdx.input.isKeyPressed(Input.Keys.W)){
-//            zoom(-1);
-//        }
-
-
-    }
-
     //endregion
-
-
 }
