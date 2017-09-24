@@ -3,10 +3,7 @@ package com.goods.game.desktop;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.badlogic.gdx.graphics.Color;
-import com.goods.game.SpaceTrader;
 import com.goods.game.SpaceTraderCam;
-import com.goods.game.SpaceTraderTEST;
-import com.goods.game.SpaceTraderTESTX_Y_Z;
 
 public class DesktopLauncher {
 	public static void main (String[] arg) {

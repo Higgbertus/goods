@@ -19,7 +19,7 @@ public class SpaceInputProcessor implements InputProcessor {
 
     // Camera Settings
     private final int zoomSpeed = 15;
-    private final int rotateAngle = 90;
+    private final int rotateAngle = 150;
     private final float translateUnitsMouse = 400f;
     private final float translateUnitsKey = 10f;
     SpacePerspectiveCamera sPerCam;
@@ -29,7 +29,8 @@ public class SpaceInputProcessor implements InputProcessor {
     private int selected = -1;
     private ObjectType selectedType;
     private boolean isZoominActive = false;
-    private GameObjectModelInstance selctedShip, selectedObject, focusedObject;
+    private GameObjectModelInstance selectedObject, focusedObject, targetObject;
+    private ShipObjectModelInstance selectedShip;
     private ArrayList<GameObjectModelInstance> staticObjects;
     private ArrayList<ShipObjectModelInstance> dynamicObjects;
 
@@ -178,7 +179,9 @@ public class SpaceInputProcessor implements InputProcessor {
                     return true;
                 }
                 case Input.Buttons.RIGHT: {
-
+                    rightMB = true;
+                    setSelected(getObject2(screenX, screenY));
+                    rightMB = false;
                     return true;
                 }
                 case Input.Buttons.MIDDLE: {
@@ -235,7 +238,30 @@ public class SpaceInputProcessor implements InputProcessor {
         return true;
     }
 
+    public GameObjectModelInstance getTargetObject() {
+        return targetObject;
+    }
 
+    public ShipObjectModelInstance getSelectedShip() {
+        return selectedShip;
+    }
+
+    public GameObjectModelInstance getSelectedObject() {
+        return selectedObject;
+    }
+
+    public GameObjectModelInstance getFocusedObject() {
+        return focusedObject;
+    }
+
+
+    public boolean activeShipRoute(){
+        if (targetObject != null && selectedShip != null){
+            return true;
+        }else{
+            return false;
+        }
+    }
     public void setSelected(int value) {
         if (selected == value) {
             switch (selectedType) {
@@ -243,17 +269,33 @@ public class SpaceInputProcessor implements InputProcessor {
                     if (isZoominActive) {
                         focusedObject = dynamicObjects.get(value);
                         sPerCam.setTarget(focusedObject);
-                    } else {
-                        selctedShip = dynamicObjects.get(value);
+                    } else if (rightMB){
+                        // move to
+                        targetObject =  dynamicObjects.get(value);
+                    }else{
+                        selectedShip = dynamicObjects.get(value);
                     }
                     break;
                 }
-                case Planet:
+                case Planet:{
+                    if (isZoominActive) {
+                        focusedObject = staticObjects.get(value);
+                        sPerCam.setTarget(focusedObject);
+                    }  else if (rightMB){
+                        // move to
+                        targetObject =  staticObjects.get(value);
+                    }else{
+                        selectedObject = staticObjects.get(value);
+                        break;
+                    }
+                }
                 case Star: {
                     if (isZoominActive) {
                         focusedObject = staticObjects.get(value);
                         sPerCam.setTarget(focusedObject);
-                    } else {
+                    }  else if (rightMB) {
+                        targetObject =  staticObjects.get(value);
+                    }else{
                         selectedObject = staticObjects.get(value);
                         break;
                     }

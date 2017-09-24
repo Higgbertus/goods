@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
@@ -13,6 +14,9 @@ import com.goods.game.Space.ObjectType;
 import com.goods.game.Space.Ressources.Form;
 import com.goods.game.Space.Ressources.RessourceType;
 import com.goods.game.Space.Ressources.Storage;
+
+import static java.lang.Math.abs;
+import static java.lang.Math.sin;
 
 /**
  * Created by Higgy on 31.08.2017.
@@ -30,9 +34,14 @@ public class ShipObjectModelInstance extends GameObjectModelInstance{
     private float accelerationPower, decelerationPower, rotationPower;
 
     private float mass;
-    private final float speedFactor = 0.005f, rotateFactor = 10f;
+    private final float speedFactor = 0.002f, rotateFactor = 2f;
     private float minWarpDistance = 50f;
-   private Storage[] storages;
+    private Storage[] storages;
+    private Vector3 propPos;
+    private float deltaTime;
+
+    Quaternion rot;
+    Quaternion tmpQ;
 
 
     public Vector3 getDirection() {
@@ -60,6 +69,10 @@ public class ShipObjectModelInstance extends GameObjectModelInstance{
     }
 
     public void setDestination(GameObjectModelInstance destination) {
+        if (this.destination == null || this.destination.getId() != destination.getId() ){
+            rot = new Quaternion();
+            tmpQ = new Quaternion();
+        }
         this.destination = destination;
         setDirection();
     }
@@ -91,24 +104,81 @@ public class ShipObjectModelInstance extends GameObjectModelInstance{
         return 0.1f;
     }
 
-    public void rotateToTarget() {
-        //check if ship reached rotation point
 
-        Quaternion q = new Quaternion();
-        Matrix4 mtx = new Matrix4();
-        mtx.rotate(direction4Rotation, Vector3.Y);
-        mtx.inv();
-        q.setFromMatrix(mtx);
-        setRotation(q);
-        this.updateTransform();
-//
-//        Vector3 newDirection = new Vector3();
-//        newDirection
-//        newDirection.scl(calculateRotationSpeed());
-//
+    Vector3 tmpV = new Vector3();
+    int pitchDir =1, yawDir= 1;
+
+    public void rotateToTarget() {
+
+
+        // rotate Ship to Target
+//        tmpQ.set(tmpV.set(direction4Rotation).crs(Vector3.Y),deltaTime*50);
+//        rot.mulLeft(tmpQ);
+//        setRotation(rot);
+//        this.updateTransform();
+
+
+        // welche achse muss in welche richtung rotiert werden? kürzeste winkel nehmen
+        // Pitch Winkel berechnen
+
+        tmpQ = new Quaternion();
+
+        if(true){
+            pitchDir =1;
+        }else {
+            pitchDir = -1;
+        }
+        if(false){
+            yawDir =1;
+        }else {
+            yawDir = -1;
+        }
+
+
+        // Pitch
+//        tmpQ.setEulerAngles(this.getRotation().getYaw(),pitchDir*rotateFactor*deltaTime,this.getRotation().getRoll());
+
+        // Yaw Winkel berechnen
+
+        // Yaw
+       // tmpQ.setEulerAngles(yawDir*rotateFactor*deltaTime,this.getRotation().getPitch(),this.getRotation().getRoll());
+
+
+        // both
+        //tmpQ.setEulerAngles(direction4Rotation.x*yawDir*rotateFactor*deltaTime,direction4Rotation.y*pitchDir*rotateFactor*deltaTime,this.getRotation().getRoll());
+
+
+
+
+        // rotiert zwar in die richtung stoppt aber nicht!
+        //tmpQ.set(tmpV.set(direction4Rotation).crs(Vector3.Y),deltaTime*50);
+
+
+        if (abs(rot.dot(getRotation())-1.0) < 0.001){
+            // same direction
+            return;
+        }else{
+//            tmpQ.setEulerAngles(direction4Rotation.x*yawDir*rotateFactor*deltaTime,direction4Rotation.y*pitchDir*rotateFactor*deltaTime,this.getRotation().getRoll());
+//            rot.mulLeft(tmpQ);
+//            setRotation(rot);
+//            this.updateTransform();
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+// Rotiert ship einmal direkt auf target
 //        Quaternion q = new Quaternion();
 //        Matrix4 mtx = new Matrix4();
-//        mtx.rotate(newDirection, Vector3.Y);
+//        mtx.rotate(direction4Rotation, Vector3.Y);
 //        mtx.inv();
 //        q.setFromMatrix(mtx);
 //        setRotation(q);
@@ -126,7 +196,8 @@ public class ShipObjectModelInstance extends GameObjectModelInstance{
         return false;
     }
 
-    public void moveShip(GameObjectModelInstance target){
+    public void moveShip(GameObjectModelInstance target, float deltaTime){
+        this.deltaTime = deltaTime;
         setDestination(target);
         rotateToTarget();
         moveToTarget();
@@ -182,6 +253,41 @@ public class ShipObjectModelInstance extends GameObjectModelInstance{
         this.storages = new Storage[sotrages];
         sb = new StringBuilder();
         sb1 = new StringBuilder();
+    }
+
+    private void rotatePropPos(){
+        Matrix4 mtx = new Matrix4();
+        mtx.set(getRotation());
+        Vector3 offsetPropPos = new Vector3(getPosition());
+        offsetPropPos.sub(propPos);
+        offsetPropPos.rot(mtx);
+        propPos.rot(mtx);
+    }
+
+    private void adjustPropPos(){
+        // Rotate
+
+
+        // Move
+
+
+
+    }
+
+    @Override
+    public void setPosition(Vector3 position) {
+        super.setPosition(position);
+        propPos = position.cpy().sub(0,10,0);
+    }
+
+    @Override
+    public void setRotation(Quaternion rotation) {
+        super.setRotation(rotation);
+        rotatePropPos();
+    }
+
+    public Vector3 getPropPos() {
+        return propPos;
     }
 
     public void setStorageType(int storage, Form form, float storageSize){

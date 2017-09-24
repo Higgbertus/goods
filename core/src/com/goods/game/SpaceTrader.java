@@ -162,7 +162,7 @@ public class SpaceTrader extends ApplicationAdapter implements InputProcessor {
         }
         // Move dynamic objects
         if (selected >= 0) {
-            dynamicObjectHandler.getShip(0).moveShip(spaceMap.getAllObjects().get(selected));
+            dynamicObjectHandler.getShip(0).moveShip(spaceMap.getAllObjects().get(selected), deltaTime);
         }
 
         modelBatch.begin(perCam);

@@ -27,6 +27,7 @@ import com.badlogic.gdx.graphics.g3d.particles.influencers.DynamicsModifier;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector2;
@@ -69,12 +70,7 @@ public class SpaceTraderCam extends ApplicationAdapter{
 
     // Game Helper
     private String planetInfos = "";
-    private int selected =-1;
-    private int selectedShip =-1;
-    private ObjectType selectedType;
     private float deltaTime;
-    private GameObjectModelInstance activeTarget;
-    private GameObjectModelInstance selectedObject;
     SpaceInputProcessor spaceInputProcessor;
 
 
@@ -219,11 +215,11 @@ public class SpaceTraderCam extends ApplicationAdapter{
         for (final StarObjectModelInstance star : spaceMap.getStars()) {
             star.rotateOrbitObjects(deltaTime);
         }
-        // Move dynamic objects
-        if (selected >= 0 && activeTarget != null && selectedShip >= 0 && selectedType != ObjectType.Ship) {
-            dynamicObjectHandler.getShip(selectedShip).moveShip(spaceMap.getAllObjects().get(selected));
-        }
 
+        // Move dynamic objects
+        if (spaceInputProcessor.activeShipRoute()){
+            spaceInputProcessor.getSelectedShip().moveShip(spaceInputProcessor.getTargetObject(), deltaTime);
+        }
         // move Patricle Effects
         moveParticles();
 
@@ -281,8 +277,8 @@ public class SpaceTraderCam extends ApplicationAdapter{
     }
 
     private void moveParticles(){
-//        ShipObjectModelInstance ship = dynamicObjectHandler.getShip(0);
-//        Vector3 shipPos = new Vector3(ship.getPosition());
+        ShipObjectModelInstance ship = dynamicObjectHandler.getShip(0);
+       Vector3 shipPos = new Vector3(ship.getPosition());
 //        Vector3 shipDir = new Vector3(ship.getPosition());
 //        Vector3 shipPosOffset = new Vector3(ship.getPosition());
 //        shipPosOffset.sub(0,6,0);
@@ -293,10 +289,10 @@ public class SpaceTraderCam extends ApplicationAdapter{
 //        transform.translate(0,-20,0);
 //        // move Particles in Ship Position
 //
-//        Quaternion rot = ship.getRotation();
+        Quaternion rot = ship.getRotation();
 //
 //        // rotate Particles in opposite Ship direction
-//        float xAngle, yAngle;
+        float xAngle, yAngle;
 //        xAngle = rot.getAngleAround(Vector3.Y);
 //        yAngle = rot.getAngleAround(Vector3.X);
 //
@@ -311,12 +307,22 @@ public class SpaceTraderCam extends ApplicationAdapter{
 //        mat.mul(rotation);
 //        mat.translate(particlePos);
         Matrix4 mat = new Matrix4();
-        mat.setTranslation(new Vector3(500,500,600));
+        //mat.setTranslation(new Vector3(500,500,600));
+        mat.setTranslation(ship.getPropPos());
         particleEffect.setTransform(mat);
 
-       // xAngle = ship.getRotation().getAxisAngle(Vector3.X);
+        xAngle = ship.getRotation().getAngleAround(Vector3.X);
         // schießt die camera ab!?!?!?!?! es geht kein links rechts rotieren mehr ?????
-        //        yAngle = ship.getRotation().getAxisAngle(Vector3.Y);
+        yAngle = ship.getRotation().getAngleAround(Vector3.Y);
+        float a = rot.getAngle();
+        float b = rot.getPitch();
+        float q = rot.getYaw();
+        float w = rot.getRoll();
+        float e = rot.getAngleAround(1,0,0);
+        float l = rot.getAngleAround(0,1,0);
+        float t = rot.getAngleAround(0,0,1);
+
+
         for (int i = 0; i < particleEffect.getControllers().size; i++) {
             if (particleEffect.getControllers().get(i).findInfluencer(DynamicsInfluencer.class) != null) {
 //                 Gdx.app.log("INFO", "FOUND DI");
@@ -335,16 +341,17 @@ public class SpaceTraderCam extends ApplicationAdapter{
 //                        float thetaSpread = Math.abs(((DynamicsModifier.PolarAcceleration) dm).thetaValue.getHighMax() - ((DynamicsModifier.PolarAcceleration) dm).thetaValue.getHighMin());
 //                        ((DynamicsModifier.PolarAcceleration) dm).thetaValue.setHigh(spaceInputProcessor.angleY - thetaSpread * 0.5f, spaceInputProcessor.angleY + thetaSpread * 0.5f); // rotation
 
-
-
-
                         // rotiert um z Achse
-                        ((DynamicsModifier.PolarAcceleration) dm).phiValue.setHigh(spaceInputProcessor.angleX, spaceInputProcessor.angleX );
+//                        ((DynamicsModifier.PolarAcceleration) dm).phiValue.setHigh(spaceInputProcessor.angleX, spaceInputProcessor.angleX );
+//                        // rotiert um Y Achse
+//                        ((DynamicsModifier.PolarAcceleration) dm).thetaValue.setHigh(spaceInputProcessor.angleY,spaceInputProcessor.angleY); // rotation
 
-                        // rotiert um Y Achse
-                        ((DynamicsModifier.PolarAcceleration) dm).thetaValue.setHigh(spaceInputProcessor.angleY,spaceInputProcessor.angleY); // rotation
-                        // around
-                        // y-axis
+
+
+
+                        ((DynamicsModifier.PolarAcceleration) dm).phiValue.setHigh(90);
+
+                        ((DynamicsModifier.PolarAcceleration) dm).thetaValue.setHigh(-90);
                     }
                 }
             }
@@ -364,8 +371,6 @@ public class SpaceTraderCam extends ApplicationAdapter{
     private void createDebugText(){
         sb.delete(0, sb.length());
         sb.append("Debug:");
-        if (selectedObject != null)
-            sb.append("\n" + selectedObject.toString());
     }
 
     @Override
@@ -376,61 +381,4 @@ public class SpaceTraderCam extends ApplicationAdapter{
         dynamicObjectHandler.clear();
         //instances.clear();
     }
-
-    //region Camera Changes
-    public void setSelected (int value) {
-        if (selected == value) {
-            switch(selectedType){
-                case Ship: {
-                    selectedShip = value;
-                    activeTarget = dynamicObjectHandler.getShip(value);
-                    selectedObject = dynamicObjectHandler.getShip(value);
-                    break;
-                }
-                case Planet: {
-                    activeTarget = spaceMap.getAllObjects().get(value);
-                    selectedObject = spaceMap.getAllObjects().get(value);
-                    break;
-                }
-                case Star: {
-                    activeTarget = spaceMap.getAllObjects().get(value);
-                    selectedObject = spaceMap.getAllObjects().get(value);
-                    break;
-                }
-            }
-        }
-    }
-
-
-    // TODO: 12.09.2017 auch dynamicobjects durchlaufen
-
-    /**
-     *
-     * @param screenX
-     * @param screenY
-     * @return gibt den Index zurück oder -1 wenn kein object angeklickt!
-     */
-    public int getObject2(int screenX, int screenY) {
-        Ray ray = sPerCam.getPickRay(screenX, screenY);
-        int result = -1;
-        float distance = -1;
-        for (int i = 0; i < spaceMap.getAllObjects().size(); ++i) {
-            final float dist2 = spaceMap.getAllObjects().get(i).intersects(ray);
-            if (dist2 >= 0f && (distance < 0f || dist2 <= distance)) {
-                result = i;
-                distance = dist2;
-                selectedType = spaceMap.getAllObjects().get(i).getType();
-            }
-        }
-        for (int i = 0; i < dynamicObjectHandler.getShips().size(); ++i) {
-            final float dist2 = dynamicObjectHandler.getShip(i).intersects(ray);
-            if (dist2 >= 0f && (distance < 0f || dist2 <= distance)) {
-                result = i;
-                distance = dist2;
-                selectedType = dynamicObjectHandler.getShip(i).getType();
-            }
-        }
-        return result;
-    }
-    //endregion
 }
